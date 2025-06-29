@@ -1,4 +1,4 @@
-import { _decorator, Component, Label } from 'cc';
+import { _decorator, Component, Label, Node } from 'cc';
 const { ccclass, property } = _decorator;
 
 // Define the structure of animal data for type safety
@@ -7,7 +7,7 @@ export interface AnimalData {
     name: string;
     level: number;
     exp: number;
-    // ... other fields like breedId, status, etc.
+    status: string; // 'idle', 'working', etc.
 }
 
 @ccclass('AnimalController')
@@ -19,6 +19,9 @@ export class AnimalController extends Component {
     @property(Label)
     private levelLabel: Label | null = null;
 
+    @property(Node)
+    private statusIcon: Node | null = null; // e.g., a "Zzz" icon for idle, a "Hammer" for working
+
     private _animalData: AnimalData | null = null;
 
     /**
@@ -28,6 +31,35 @@ export class AnimalController extends Component {
     public setup(data: AnimalData) {
         this._animalData = data;
         this.updateDisplay();
+    }
+
+    /**
+     * Returns the animal's data.
+     */
+    public getAnimalData(): AnimalData | null {
+        return this._animalData;
+    }
+
+    /**
+     * Immediately updates the animal's status and its visual representation.
+     * @param newStatus The new status string (e.g., 'working').
+     */
+    public updateStatus(newStatus: string) {
+        if (this._animalData) {
+            this._animalData.status = newStatus;
+            this.updateDisplay();
+        }
+    }
+
+    /**
+     * Immediately updates the animal's level and its visual representation.
+     * @param newLevel The new level number.
+     */
+    public updateLevel(newLevel: number) {
+        if (this._animalData) {
+            this._animalData.level = newLevel;
+            this.updateDisplay();
+        }
     }
 
     private updateDisplay() {
@@ -43,7 +75,9 @@ export class AnimalController extends Component {
             this.levelLabel.string = `Lv. ${this._animalData.level}`;
         }
         
-        // Here you could also change the sprite frame based on the animal's breed,
-        // show a status icon (working, idle), etc.
+        if (this.statusIcon) {
+            // Example logic: show icon only when working
+            this.statusIcon.active = this._animalData.status === 'working';
+        }
     }
 } 

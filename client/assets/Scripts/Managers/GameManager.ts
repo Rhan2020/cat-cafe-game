@@ -1,67 +1,72 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, Component, director } from 'cc';
 import { NetworkManager } from '../Network/NetworkManager';
+
 const { ccclass, property } = _decorator;
 
-// Forward declaration for user data structure
-// This should match the structure returned from the server
-interface UserData {
+// Define the structure for type safety, mirroring the database documents
+export interface UserData {
     _id: string;
-    gold: number;
-    gems: number;
     nickname: string;
+    gold: number;
     // ... other user fields
 }
 
 @ccclass('GameManager')
 export class GameManager extends Component {
-
-    public static Instance: GameManager | null = null;
+    public static Instance: GameManager = null;
 
     public currentUser: UserData | null = null;
-    
-    // This property is not needed if NetworkManager is a singleton
-    // @property(NetworkManager)
-    // public networkManager: NetworkManager | null = null;
+    public gameConfigs: any = null; // Will hold all game configurations
 
     onLoad() {
-        if (GameManager.Instance === null) {
-            GameManager.Instance = this;
-            this.node.parent = null;
-        } else {
+        if (GameManager.Instance) {
             this.destroy();
             return;
         }
+        GameManager.Instance = this;
+        director.addPersistRootNode(this.node);
     }
 
     async start() {
-        if (!NetworkManager.Instance) {
-            console.error("[GameManager] NetworkManager not initialized. Cannot log in.");
-            return;
-        }
-        console.log("[GameManager] Starting game login process...");
         try {
-            const response = await NetworkManager.Instance.callCloudFunction('user_login');
-            // Check for a successful response (code 200 for existing user, 201 for new user)
-            if (response && (response.code === 200 || response.code === 201)) {
-                this.currentUser = response.data.user;
-                console.log("[GameManager] Login successful. User data:", this.currentUser);
+            console.log("[GameManager] Starting game flow...");
 
-                const offlineEarnings = response.data.offlineEarnings;
-                if (offlineEarnings && offlineEarnings.gold > 0) {
-                    console.log(`[GameManager] Welcome back! You earned ${offlineEarnings.gold} gold while you were away.`);
-                    // Here you would trigger a UI popup to show the earnings
-                    // UIManager.Instance.showOfflineEarnings(offlineEarnings);
-                }
-                
-                // Now that we are logged in, we can start the game, e.g., load the main scene
-                // director.loadScene('MainGameScene');
-            } else {
-                console.error("[GameManager] Login failed:", response?.message);
-                // Handle login failure, e.g., show an error message and a retry button
+            // 1. User Login
+            const loginResponse = await NetworkManager.Instance.callCloudFunction('user_login');
+            if (!loginResponse || (loginResponse.code !== 200 && loginResponse.code !== 201)) {
+                console.error("Login failed:", loginResponse?.message);
+                return;
             }
+            this.currentUser = loginResponse.data.user;
+            console.log("[GameManager] User logged in:", this.currentUser);
+
+            // 2. Fetch Game Configs
+            const configResponse = await NetworkManager.Instance.callCloudFunction('get_game_configs');
+            if (!configResponse || configResponse.code !== 200) {
+                console.error("Failed to get game configs:", configResponse?.message);
+                return;
+            }
+            this.gameConfigs = this.processConfigs(configResponse.data);
+            console.log("[GameManager] Game configs loaded:", this.gameConfigs);
+
+
+            // 3. Proceed to main scene
+            director.loadScene('Main');
+
         } catch (error) {
-            console.error("[GameManager] An error occurred during the login process:", error);
-            // Handle network errors, etc.
+            console.error("[GameManager] Critical error during startup:", error);
         }
+    }
+    
+    /**
+     * Processes the raw config array from the DB into a more accessible key-value object.
+     * e.g., from [{_id: 'animal_breeds', data: [...]}] to { animal_breeds: [...] }
+     */
+    private processConfigs(configArray: any[]): any {
+        if (!configArray) return {};
+        return configArray.reduce((acc, config) => {
+            acc[config._id] = config.data;
+            return acc;
+        }, {});
     }
 } 

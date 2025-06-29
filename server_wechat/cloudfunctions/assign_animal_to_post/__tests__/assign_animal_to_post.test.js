@@ -2,123 +2,102 @@
 jest.mock('wx-server-sdk');
 
 const cloud = require('wx-server-sdk');
-const { _mockCollections } = require('wx-server-sdk');
+const { _mocks, _clearAllMocks } = cloud;
+const { collections, queries, db } = _mocks;
 const assignAnimalToPost = require('../index').main;
 
-describe('Assign Animal to Post Cloud Function', () => {
-    
-    const animalId = 'animal_123';
-    const postId = 'post_kitchen';
-    const openid = 'test_openid'; // From mock
+// This will be the mock transaction object passed to the transaction's callback
+const mockTransaction = {
+    collection: db.collection, // Use the same mock collection function
+    rollback: jest.fn(),
+};
+
+describe('Assign Animal to Post Cloud Function (Transaction Logic)', () => {
+    const openid = 'test-openid';
+    const animalId = 'test-animal-id';
+    const postId = 'post-1';
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        _clearAllMocks();
+        // Also clear the transaction-specific mocks
+        mockTransaction.rollback.mockClear();
+        // Mock the runTransaction implementation
+        db.runTransaction.mockImplementation(async (callback) => {
+            // The callback is the function we wrote inside runTransaction
+            // We execute it with our mock transaction object
+            return await callback(mockTransaction);
+        });
     });
 
-    test('should successfully assign an owned animal to a post', async () => {
+    it('should successfully assign an animal and unassign the previous one', async () => {
         // Arrange
-        const animal = { _id: animalId, ownerId: openid, status: 'idle' };
-        _mockCollections.animals.get.mockResolvedValue({ data: [animal] });
-        _mockCollections.animals.update.mockResolvedValue({ stats: { updated: 1 } });
+        const animalsCollectionMock = {
+            where: jest.fn().mockReturnThis(),
+            update: jest.fn().mockResolvedValue({ stats: { updated: 1 } }),
+        };
+        db.collection.mockReturnValue(animalsCollectionMock);
         
+        // The second update call (assigning the new animal) should succeed
+        animalsCollectionMock.update.mockResolvedValueOnce({ stats: { updated: 1 } }); // For un-assignment
+        animalsCollectionMock.update.mockResolvedValueOnce({ stats: { updated: 1 } }); // For assignment
+
         // Act
-        const result = await assignAnimalToPost({ animalId, postId }, {});
+        const result = await assignAnimalToPost({ animalId, postId });
 
         // Assert
         expect(result.code).toBe(200);
         expect(result.message).toBe('Animal assigned successfully.');
-        expect(_mockCollections.animals.where).toHaveBeenCalledWith({ _id: animalId, ownerId: openid });
-        expect(_mockCollections.animals.doc).toHaveBeenCalledWith(animalId);
-        expect(_mockCollections.animals.update).toHaveBeenCalledWith({
-            data: { status: 'working', assignedPost: postId }
-        });
+        expect(db.collection).toHaveBeenCalledWith('animals');
+
+        // Check un-assignment call
+        expect(animalsCollectionMock.where).toHaveBeenCalledWith({ _openid: openid, postId: postId });
+        
+        // Check assignment call
+        expect(animalsCollectionMock.where).toHaveBeenCalledWith({ _id: animalId, _openid: openid, status: 'idle' });
+
+        expect(animalsCollectionMock.update).toHaveBeenCalledTimes(2);
+        expect(mockTransaction.rollback).not.toHaveBeenCalled();
     });
 
-    test('should return 400 if animalId or postId is missing', async () => {
-        // Act & Assert
-        const result1 = await assignAnimalToPost({ postId }, {});
-        expect(result1.code).toBe(400);
-
-        const result2 = await assignAnimalToPost({ animalId }, {});
-        expect(result2.code).toBe(400);
-
-        expect(_mockCollections.animals.where).not.toHaveBeenCalled();
-    });
-
-    test('should return 403 if the animal is not owned by the user', async () => {
+    it('should rollback if the animal to assign is not found or not idle', async () => {
         // Arrange
-        _mockCollections.animals.get.mockResolvedValue({ data: [] });
-
+        const animalsCollectionMock = {
+            where: jest.fn().mockReturnThis(),
+            update: jest.fn(),
+        };
+        db.collection.mockReturnValue(animalsCollectionMock);
+        
+        // Simulate the first update (un-assignment) succeeding
+        animalsCollectionMock.update.mockResolvedValueOnce({ stats: { updated: 1 } });
+        // Simulate the second update (assignment) failing to find a document
+        animalsCollectionMock.update.mockResolvedValueOnce({ stats: { updated: 0 } });
+        
         // Act
-        const result = await assignAnimalToPost({ animalId, postId }, {});
+        // The transaction itself will throw an error when rollback is called
+        await assignAnimalToPost({ animalId, postId });
 
         // Assert
-        expect(result.code).toBe(403);
-        expect(result.message).toContain('You do not own this animal');
-        expect(_mockCollections.animals.update).not.toHaveBeenCalled();
-    });
-    
-    test('should return 500 if the database update fails', async () => {
-        // Arrange
-        const animal = { _id: animalId, ownerId: openid, status: 'idle' };
-        _mockCollections.animals.get.mockResolvedValue({ data: [animal] });
-        _mockCollections.animals.update.mockResolvedValue({ stats: { updated: 0 } }); // Simulate a failed update
-
-        // Act
-        const result = await assignAnimalToPost({ animalId, postId }, {});
-
-        // Assert
-        expect(result.code).toBe(500);
-        expect(result.message).toBe('Failed to update animal status.');
+        expect(mockTransaction.rollback).toHaveBeenCalledWith('Animal not found, is not idle, or you do not own it.');
     });
 
-    test('should return 500 on a database query error', async () => {
+    it('should return 500 if the transaction fails for a non-rollback reason', async () => {
         // Arrange
-        const dbError = new Error('Database connection failed');
-        _mockCollections.animals.get.mockRejectedValue(dbError);
+        const dbError = new Error('DB connection failed');
+        db.runTransaction.mockRejectedValue(dbError);
 
         // Act
-        const result = await assignAnimalToPost({ animalId, postId }, {});
+        const result = await assignAnimalToPost({ animalId, postId });
 
         // Assert
         expect(result.code).toBe(500);
         expect(result.message).toBe('Internal Server Error');
     });
 
-    test('should unassign the previous occupant when assigning an animal to an occupied post', async () => {
-        // Arrange
-        const newAnimalId = 'animal_new';
-        const occupantAnimalId = 'animal_occupant';
-        const animalToAssign = { _id: newAnimalId, ownerId: openid, status: 'idle' };
-        const occupantAnimal = { _id: occupantAnimalId, ownerId: openid, status: 'working', assignedPost: postId };
-        
-        // The first .get() call checks for ownership of the new animal
-        // The second .get() call checks for an existing occupant
-        _mockCollections.animals.get
-            .mockResolvedValueOnce({ data: [animalToAssign] })
-            .mockResolvedValueOnce({ data: [occupantAnimal] });
+    it('should return 400 if animalId or postId is missing', async () => {
+        const result1 = await assignAnimalToPost({ postId });
+        expect(result1.code).toBe(400);
 
-        _mockCollections.animals.update.mockResolvedValue({ stats: { updated: 1 } });
-
-        // Act
-        const result = await assignAnimalToPost({ animalId: newAnimalId, postId }, {});
-        
-        // Assert
-        expect(result.code).toBe(200);
-        
-        // Check that update was called twice
-        expect(_mockCollections.animals.update).toHaveBeenCalledTimes(2);
-
-        // Check that the occupant was unassigned
-        expect(_mockCollections.animals.doc).toHaveBeenCalledWith(occupantAnimalId);
-        expect(_mockCollections.animals.update).toHaveBeenCalledWith({
-            data: { status: 'idle', assignedPost: '' }
-        });
-
-        // Check that the new animal was assigned
-        expect(_mockCollections.animals.doc).toHaveBeenCalledWith(newAnimalId);
-        expect(_mockCollections.animals.update).toHaveBeenCalledWith({
-            data: { status: 'working', assignedPost: postId }
-        });
+        const result2 = await assignAnimalToPost({ animalId });
+        expect(result2.code).toBe(400);
     });
 });

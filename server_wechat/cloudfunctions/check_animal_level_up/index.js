@@ -5,6 +5,7 @@ cloud.init({
 });
 
 const db = cloud.database();
+const _ = db.command;
 
 /**
  * Checks if an animal has enough EXP to level up. If so, it processes the level-up,
@@ -24,57 +25,54 @@ exports.main = async (event, context) => {
   }
 
   try {
-    const configsPromise = db.collection('game_configs').where({ _id: 'level_up_exp' }).get();
-    const animalPromise = db.collection('animals').where({ _id: animalId, ownerId: openid }).get();
+    // --- Step 1: Fetch animal data and level-up configurations in parallel ---
+    const [animalRes, configRes] = await Promise.all([
+      db.collection('animals').where({ _id: animalId, _openid: openid }).get(),
+      db.collection('game_configs').doc('animal_level_up_exp').get()
+    ]);
+
+    if (!animalRes.data || animalRes.data.length === 0) {
+      return { code: 404, message: 'Animal not found or not owned by the user.' };
+    }
+    if (!configRes.data || !configRes.data.data) {
+        return { code: 500, message: 'Game level up configuration not found.' };
+    }
     
-    const [configsResult, animalResult] = await Promise.all([configsPromise, animalPromise]);
+    let animal = animalRes.data[0];
+    const levelUpExps = configRes.data.data; // e.g., [100, 200, 300]
 
-    if (animalResult.data.length === 0) {
-      return { code: 403, message: 'Animal not found or you do not own it.' };
+    // --- Step 2: Calculate level-ups in a loop ---
+    let originalLevel = animal.level;
+    let didLevelUp = false;
+
+    // Check if the animal can level up from its current level
+    while (animal.level < levelUpExps.length + 1 && animal.exp >= levelUpExps[animal.level - 1]) {
+        didLevelUp = true;
+        const requiredExp = levelUpExps[animal.level - 1];
+        animal.exp -= requiredExp;
+        animal.level++;
     }
 
-    const levelUpExps = configsResult.data[0]?.data;
-    if (!levelUpExps || levelUpExps.length === 0) {
-      return { code: 500, message: 'Level up configuration not found.' };
-    }
-
-    let animal = animalResult.data[0];
-    let currentLevel = animal.level;
-    let currentExp = animal.exp;
-    const initialLevel = animal.level;
-
-    // Loop to handle multiple level-ups
-    while (true) {
-      if (currentLevel - 1 >= levelUpExps.length) {
-        // Animal is at max level according to the config
-        break;
-      }
-      
-      const expNeeded = levelUpExps[currentLevel - 1];
-      
-      if (currentExp >= expNeeded) {
-        currentLevel++;
-        currentExp -= expNeeded;
-      } else {
-        // Not enough EXP for the next level
-        break;
-      }
-    }
-
-    if (currentLevel > initialLevel) {
-      // If a level-up occurred, update the database
+    // --- Step 3: If a level-up occurred, update the database ---
+    if (didLevelUp) {
       await db.collection('animals').doc(animalId).update({
         data: {
-          level: currentLevel,
-          exp: currentExp,
-          // TODO: Update animal's baseAttributes based on level-up rules
+          level: animal.level,
+          exp: animal.exp
         }
       });
-      return { code: 200, data: { didLevelUp: true, newLevel: currentLevel, newExp: currentExp } };
-    } else {
-      // No level-up occurred
-      return { code: 200, data: { didLevelUp: false } };
+      console.log(`Animal ${animalId} leveled up from ${originalLevel} to ${animal.level}.`);
     }
+
+    return {
+      code: 200,
+      message: didLevelUp ? 'Level up successful.' : 'Not enough EXP to level up.',
+      data: {
+        didLevelUp,
+        newLevel: animal.level,
+        currentExp: animal.exp
+      }
+    };
 
   } catch (err) {
     console.error(`Error in check_animal_level_up for user ${openid}:`, err);

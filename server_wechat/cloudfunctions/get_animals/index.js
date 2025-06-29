@@ -15,20 +15,19 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
 
+  if (!openid) {
+    return { code: 401, message: 'Unauthorized: OPENID not found.' };
+  }
+
   try {
-    const animalsCollection = db.collection('animals');
-    
-    // Query for all animals owned by the user
-    const animalsResult = await animalsCollection.where({
-      ownerId: openid
+    const result = await db.collection('animals').where({
+      _openid: openid
     }).get();
 
-    console.log(`Fetched ${animalsResult.data.length} animals for user ${openid}.`);
-
+    console.log(`Fetched ${result.data.length} animals for user ${openid}.`);
     return {
       code: 200,
-      message: 'Animals fetched successfully.',
-      data: animalsResult.data
+      data: result.data
     };
 
   } catch (err) {

@@ -21,82 +21,60 @@ exports.main = async (event, context) => {
 
   const { animalId, postId } = event;
 
-  // 1. Basic input validation
   if (!animalId || !postId) {
-    return {
-      code: 400,
-      message: 'Missing required parameters: animalId and postId.'
-    };
+    return { code: 400, message: 'animalId and postId are required.' };
   }
 
   try {
-    const animalsCollection = db.collection('animals');
-    
-    // 2. Verify ownership of the animal in a single query
-    const animalRecord = await animalsCollection.where({
-      _id: animalId,
-      ownerId: openid
-    }).get();
+    const result = await db.runTransaction(async transaction => {
+      const animalsCollection = transaction.collection('animals');
 
-    if (animalRecord.data.length === 0) {
-      return {
-        code: 403,
-        message: 'Forbidden: You do not own this animal or it does not exist.'
-      };
-    }
+      // Step 1: Unassign any animal currently at the target post
+      // This is a "fire-and-forget" update, we don't care if 0 or 1 animals were updated.
+      await animalsCollection.where({
+        _openid: openid,
+        postId: postId,
+      }).update({
+        data: {
+          status: 'idle',
+          postId: '',
+        }
+      });
+      
+      // Step 2: Try to assign the new animal to the post.
+      // The where clause is critical: it ensures we only assign an animal that is
+      // currently idle and owned by the user.
+      const assignResult = await animalsCollection.where({
+        _id: animalId,
+        _openid: openid,
+        status: 'idle',
+      }).update({
+        data: {
+          status: 'working',
+          postId: postId,
+        }
+      });
 
-    const animalToAssign = animalRecord.data[0];
-    
-    // If we are trying to assign an already working animal to the same post, do nothing.
-    if (animalToAssign.status === 'working' && animalToAssign.assignedPost === postId) {
-      return { code: 200, message: 'Animal is already assigned to this post.' };
-    }
-
-    // 3. Unassign any animal that currently occupies the target post
-    const occupants = await animalsCollection.where({
-        ownerId: openid,
-        assignedPost: postId,
-        _id: _.neq(animalId) // Important: do not unassign the animal we're trying to assign
-    }).get();
-
-    if (occupants.data.length > 0) {
-        const occupantId = occupants.data[0]._id;
-        console.log(`Post ${postId} is occupied by ${occupantId}. Unassigning it.`);
-        await animalsCollection.doc(occupantId).update({
-            data: {
-                status: 'idle',
-                assignedPost: '' // or null
-            }
-        });
-    }
-
-    // 4. Update the target animal's status and assigned post
-    const updateResult = await animalsCollection.doc(animalId).update({
-      data: {
-        status: 'working',
-        assignedPost: postId
+      // Step 3: Check if the assignment was successful.
+      // If the where clause in Step 2 didn't find a matching animal (e.g., it was
+      // already working, or didn't exist), assignResult.stats.updated will be 0.
+      if (assignResult.stats.updated === 0) {
+        // We must abort the transaction. This will automatically roll back the
+        // un-assignment from Step 1 if it happened.
+        await transaction.rollback('Animal not found, is not idle, or you do not own it.');
       }
     });
-    
-    if (updateResult.stats.updated === 1) {
-        console.log(`Animal ${animalId} assigned to post ${postId} for user ${openid}.`);
-        return {
-          code: 200,
-          message: 'Animal assigned successfully.'
-        };
-    } else {
-        // This case might happen if the document exists but the update fails for some reason
-        return {
-            code: 500,
-            message: 'Failed to update animal status.'
-        }
-    }
 
-  } catch (err) {
-    console.error(`Error in assign_animal_to_post for user ${openid}:`, err);
-    return {
-      code: 500,
-      message: 'Internal Server Error'
-    };
+    // If the transaction is successful
+    return { code: 200, message: 'Animal assigned successfully.' };
+
+  } catch (e) {
+    // This catches both transaction logic errors (like the rollback) and real DB errors
+    if (e.errMsg && e.errMsg.includes('aborted')) {
+        return { code: 404, message: 'Animal not found, is not idle, or you do not own it.' };
+    }
+    
+    console.error("Transaction failed:", e);
+    return { code: 500, message: 'Internal Server Error' };
   }
 }; 

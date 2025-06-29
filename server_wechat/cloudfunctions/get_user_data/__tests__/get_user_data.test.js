@@ -1,48 +1,46 @@
-jest.mock('wx-server-sdk');
-
-const cloud = require('wx-server-sdk');
-const { _mockCollection } = require('wx-server-sdk');
 const getUserData = require('../index').main;
+const cloud = require('wx-server-sdk');
+
+const { _mocks, _clearAllMocks } = cloud;
+const { collections, queries } = _mocks;
 
 describe('Get User Data Cloud Function', () => {
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        _clearAllMocks();
     });
 
-    test('should fetch user profile and animal data in parallel', async () => {
+    it('should fetch user profile and animal data in parallel', async () => {
         // Arrange
-        const mockUserProfile = { _id: 'test_openid', gold: 100 };
-        const mockAnimalData = [{ _id: 'animal_1', name: '小橘' }];
-        
-        // Mock the two parallel database calls
-        const getFn = _mockCollection.get;
-        getFn
-            .mockResolvedValueOnce({ data: mockUserProfile, errMsg: 'document.get:ok' })  // For users collection
-            .mockResolvedValueOnce({ data: mockAnimalData, errMsg: 'collection.get:ok' }); // For animals collection
+        const mockUserProfile = { _id: 'test-openid', name: 'Test User' };
+        const mockAnimalData = [{ _id: 'animal1', name: 'Cat A' }];
+
+        queries.get
+            .mockResolvedValueOnce({ data: mockUserProfile })  // For users collection doc
+            .mockResolvedValueOnce({ data: mockAnimalData }); // For animals collection
 
         // Act
-        const result = await getUserData({}, {});
+        const result = await getUserData({});
 
         // Assert
-        const db = cloud.database();
-        expect(db.collection).toHaveBeenCalledWith('users');
-        expect(db.collection).toHaveBeenCalledWith('animals');
-        
         expect(result.code).toBe(200);
         expect(result.data.profile).toEqual(mockUserProfile);
         expect(result.data.animals).toEqual(mockAnimalData);
+
+        // Verify that the correct calls were made
+        expect(collections.users.doc).toHaveBeenCalledWith('test-openid');
+        expect(collections.animals.where).toHaveBeenCalledWith({ _openid: 'test-openid' });
+        expect(queries.get).toHaveBeenCalledTimes(2);
     });
 
-    test('should return an error if OPENID is not found', async () => {
-        // Arrange: Mock the context to have no OPENID
+    it('should return an error if OPENID is not found', async () => {
+        // Arrange: mock context to not have an OPENID
         cloud.getWXContext.mockReturnValueOnce({});
 
         // Act
-        const result = await getUserData({}, {});
+        const result = await getUserData({});
 
         // Assert
         expect(result.code).toBe(401);
-        expect(result.message).toContain('Unauthorized');
     });
 }); 

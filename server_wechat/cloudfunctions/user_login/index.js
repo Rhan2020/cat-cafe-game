@@ -11,145 +11,86 @@ const _ = db.command;
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
+  const now = new Date();
 
   try {
-    const usersCollection = db.collection('users');
-    const userRecord = await usersCollection.where({
-      _id: openid
-    }).get();
-
-    if (userRecord.data.length > 0) {
-      // User exists, calculate offline earnings and update last login time
-      const user = userRecord.data[0];
-      const lastLoginDate = user.lastLoginAt;
-      const now = new Date();
-      const offlineSeconds = Math.floor((now - lastLoginDate) / 1000);
-
-      let earnedGold = 0;
-      let workingAnimalsCount = 0;
-
-      // Calculate offline earnings only if offline for a meaningful duration
-      if (offlineSeconds > 5) { // At least 5 seconds to avoid negligible calculations
-        // 1. Get all game configurations in one go
-        const configs = await db.collection('game_configs').get();
-        const animalBreedsConfig = configs.data.find(c => c._id === 'animal_breeds')?.data || [];
-
-        // 2. Get user's working animals
-        const animalsCollection = db.collection('animals');
-        const workingAnimals = await animalsCollection.where({
-          ownerId: openid,
-          status: 'working'
-        }).get();
-        
-        workingAnimalsCount = workingAnimals.data.length;
-
-        if (workingAnimalsCount > 0) {
-          const expPerSecond = 0.5; // Placeholder: EXP gain rate
-
-          // 3. Calculate earnings and EXP for each animal
-          let totalEarnedGold = 0;
-          const animalUpdatePromises = [];
-
-          for (const animal of workingAnimals.data) {
-            // Calculate gold
-            const breedInfo = animalBreedsConfig.find(b => b.breedId === animal.breedId);
-            const goldPerSecond = breedInfo?.baseAttributes?.speed || 1;
-            totalEarnedGold += (offlineSeconds * goldPerSecond);
-
-            // Calculate EXP and prepare update
-            const earnedExp = offlineSeconds * expPerSecond;
-            if (earnedExp > 0) {
-              const promise = db.collection('animals').doc(animal._id).update({
-                data: { exp: _.inc(earnedExp) }
-              });
-              animalUpdatePromises.push(promise);
-            }
-          }
-          
-          earnedGold = Math.floor(totalEarnedGold);
-
-          // We don't await the animal updates to speed up login response.
-          // The client can refetch animal data later if needed.
-          // This logs potential errors on the server side.
-          Promise.all(animalUpdatePromises).catch(err => {
-              console.error(`Failed to update EXP for some animals for user ${openid}:`, err);
-          });
-        }
+    let userResult;
+    try {
+      userResult = await db.collection('users').doc(openid).get();
+    } catch (e) {
+      // User not found is a normal case for new users, not an error
+      if (e.errCode === -1) { 
+        userResult = { data: null };
+      } else {
+        throw e; // Re-throw other errors
       }
+    }
 
-      // Update user's last login time and add earned gold
-      await usersCollection.doc(openid).update({
-        data: {
-          lastLoginAt: db.serverDate(),
-          gold: _.inc(earnedGold)
-        }
-      });
-
-      console.log(`User ${openid} logged in. Earned ${earnedGold} gold after ${offlineSeconds}s offline with ${workingAnimalsCount} animals.`);
-      
-      // Prepare the response payload
-      const updatedUser = {
-          ...user,
-          gold: user.gold + earnedGold,
-          lastLoginAt: now // Use the 'now' from the start of the function for consistency
-      };
-
-      return {
-        code: 200,
-        message: 'Login successful',
-        data: {
-          user: updatedUser,
-          offlineEarnings: {
-            gold: earnedGold,
-            duration: offlineSeconds,
-            animalCount: workingAnimalsCount
-          }
-        }
-      };
-    } else {
-      // User does not exist, create a new user
+    // Case 1: New User
+    if (userResult.data === null) {
       const newUser = {
-        _id: openid,
-        createdAt: db.serverDate(),
-        lastLoginAt: db.serverDate(),
-        nickname: `主人_${openid.substring(openid.length - 4)}`, // Default nickname
-        avatarUrl: '', // Client should upload this
-        gold: 1000,
-        gems: 10,
-        inventory: {},
-        settings: {
-            music: 1,
-            sound: 1
-        },
-        debut: { // Default debut scenario
-            type: 'N',
-            debt: 5000 
-        }
+        _openid: openid,
+        nickname: `游客${Math.floor(Math.random() * 10000)}`,
+        gold: 0,
+        last_login_time: now,
+        creation_time: now,
       };
-      await usersCollection.add({
-        data: newUser
-      });
-      console.log(`New user ${openid} created.`);
+      await db.collection('users').add({ data: newUser });
+      console.log(`New user created: ${openid}`);
       return {
         code: 201,
         message: 'User created successfully',
-        // New user has no offline earnings, so the structure is simpler
-        data: {
-          user: newUser,
-          offlineEarnings: {
-            gold: 0,
-            duration: 0,
-            animalCount: 0
-          }
-        }
+        data: { user: newUser, offlineEarnings: { gold: 0 } }
       };
     }
-  } catch (err) {
-    console.error('Error in user_login function:', err);
+
+    // Case 2: Existing User
+    const user = userResult.data;
+    const lastLoginTime = new Date(user.last_login_time);
+    const offlineSeconds = Math.floor((now.getTime() - lastLoginTime.getTime()) / 1000);
+
+    let earnedGold = 0;
+    if (offlineSeconds > 5) { // Only calculate if offline for more than 5 seconds
+      const [workingAnimalsRes, configsRes] = await Promise.all([
+        db.collection('animals').where({ _openid: openid, status: 'working' }).get(),
+        db.collection('game_configs').get()
+      ]);
+      
+      const workingAnimals = workingAnimalsRes.data || [];
+      const breedConfigsDoc = configsRes.data.find(doc => doc._id === 'animal_breeds');
+      const breedConfigs = breedConfigsDoc ? breedConfigsDoc.data : [];
+
+      if (workingAnimals.length > 0 && breedConfigs.length > 0) {
+        const breedMap = new Map(breedConfigs.map(b => [b.breedId, b]));
+        const totalSpeed = workingAnimals.reduce((speed, animal) => {
+          const breed = breedMap.get(animal.breedId);
+          return speed + (breed?.baseAttributes?.speed || 0);
+        }, 0);
+        earnedGold = Math.floor(totalSpeed * offlineSeconds);
+      }
+    }
+
+    // Always update last_login_time, and increment gold only if it's earned
+    await db.collection('users').doc(user._id).update({
+        data: {
+            gold: _.inc(earnedGold),
+            last_login_time: now
+        }
+    });
+    
+    console.log(`User ${openid} logged in. Earned ${earnedGold} gold.`);
+    
     return {
-      code: 500,
-      message: 'Internal server error',
-      error: err
+      code: 200,
+      message: 'Login successful',
+      data: {
+        user: { ...user, gold: user.gold + earnedGold },
+        offlineEarnings: { gold: earnedGold, duration: offlineSeconds }
+      }
     };
+
+  } catch (err) {
+    console.error(`Error in user_login for ${openid}:`, err);
+    return { code: 500, message: 'Internal Server Error' };
   }
 };

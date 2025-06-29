@@ -2,53 +2,54 @@
 jest.mock('wx-server-sdk');
 
 const cloud = require('wx-server-sdk');
-const { _mockCollections } = require('wx-server-sdk');
+const { _mocks, _clearAllMocks } = cloud;
+const { collections, queries } = _mocks;
 const getAnimals = require('../index').main;
 
 describe('Get Animals Cloud Function', () => {
-
-    const openid = 'test_openid';
+    const openid = 'test-openid';
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        _clearAllMocks();
     });
 
-    test('should fetch all animals for the current user', async () => {
+    it('should fetch all animals for the current user', async () => {
         // Arrange
         const userAnimals = [
-            { _id: 'animal1', ownerId: openid, name: 'Cat A' },
-            { _id: 'animal2', ownerId: openid, name: 'Dog B' },
+            { _id: 'animal1', _openid: openid, name: 'Cat A' },
+            { _id: 'animal2', _openid: openid, name: 'Dog B' },
         ];
-        _mockCollections.animals.get.mockResolvedValue({ data: userAnimals });
+        queries.get.mockResolvedValue({ data: userAnimals });
 
         // Act
-        const result = await getAnimals({}, {});
+        const result = await getAnimals({});
 
         // Assert
         expect(result.code).toBe(200);
         expect(result.data).toEqual(userAnimals);
-        expect(_mockCollections.animals.where).toHaveBeenCalledWith({ ownerId: openid });
+        expect(collections.animals.where).toHaveBeenCalledWith({ _openid: openid });
+        expect(queries.get).toHaveBeenCalledTimes(1);
     });
 
-    test('should return an empty array if the user has no animals', async () => {
+    it('should return an empty array if the user has no animals', async () => {
         // Arrange
-        _mockCollections.animals.get.mockResolvedValue({ data: [] });
+        queries.get.mockResolvedValue({ data: [] });
 
         // Act
-        const result = await getAnimals({}, {});
+        const result = await getAnimals({});
 
         // Assert
         expect(result.code).toBe(200);
         expect(result.data).toEqual([]);
     });
 
-    test('should return 500 on a database query error', async () => {
+    it('should return 500 on a database query error', async () => {
         // Arrange
         const dbError = new Error('Database connection failed');
-        _mockCollections.animals.get.mockRejectedValue(dbError);
+        queries.get.mockRejectedValue(dbError);
 
         // Act
-        const result = await getAnimals({}, {});
+        const result = await getAnimals({});
 
         // Assert
         expect(result.code).toBe(500);

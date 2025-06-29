@@ -2,94 +2,93 @@
 jest.mock('wx-server-sdk');
 
 const cloud = require('wx-server-sdk');
-const { _mockCollections } = require('wx-server-sdk');
+const { _mocks, _clearAllMocks } = cloud;
+const { collections, queries } = _mocks;
 const checkLevelUp = require('../index').main;
 
-describe('Check Animal Level Up Cloud Function', () => {
-    
-    const animalId = 'animal_123';
-    const openid = 'test_openid';
-    // Mock EXP requirements: lv1->2: 100, lv2->3: 250, lv3->4: 500
-    const levelUpExpConfig = { _id: 'level_up_exp', data: [100, 250, 500] };
+describe('Check Animal Level Up Cloud Function (Refactored)', () => {
+    const openid = 'test-openid';
+    const animalId = 'test-animal-id';
+
+    const mockAnimal = {
+        _id: animalId,
+        _openid: openid,
+        level: 1,
+        exp: 0,
+    };
+
+    const mockLevelUpConfig = {
+        _id: 'animal_level_up_exp',
+        data: [100, 200, 300], // exp for lv1->2, lv2->3, lv3->4
+    };
 
     beforeEach(() => {
-        jest.clearAllMocks();
-        // Setup default mocks
-        _mockCollections.game_configs.get.mockResolvedValue({ data: [levelUpExpConfig] });
+        _clearAllMocks();
     });
 
-    test('should not level up if EXP is insufficient', async () => {
-        // Arrange
-        const animal = { _id: animalId, ownerId: openid, level: 1, exp: 99 };
-        _mockCollections.animals.get.mockResolvedValue({ data: [animal] });
+    const setupMocks = (animalData, configData = mockLevelUpConfig) => {
+        // Mock the Promise.all calls
+        queries.get
+            .mockResolvedValueOnce({ data: animalData ? [animalData] : [] }) // Animal query
+            .mockResolvedValueOnce({ data: configData });                   // Config query
+    };
 
-        // Act
-        const result = await checkLevelUp({ animalId }, {});
-
-        // Assert
-        expect(result.code).toBe(200);
+    it('should not level up if EXP is insufficient', async () => {
+        setupMocks({ ...mockAnimal, exp: 50 });
+        const result = await checkLevelUp({ animalId });
         expect(result.data.didLevelUp).toBe(false);
-        expect(_mockCollections.animals.update).not.toHaveBeenCalled();
+        expect(queries.update).not.toHaveBeenCalled();
     });
 
-    test('should level up once if EXP is just enough', async () => {
-        // Arrange
-        const animal = { _id: animalId, ownerId: openid, level: 1, exp: 100 };
-        _mockCollections.animals.get.mockResolvedValue({ data: [animal] });
+    it('should level up once and consume exact EXP', async () => {
+        setupMocks({ ...mockAnimal, exp: 100 });
+        queries.update.mockResolvedValue({ stats: { updated: 1 } });
 
-        // Act
-        const result = await checkLevelUp({ animalId }, {});
+        const result = await checkLevelUp({ animalId });
 
-        // Assert
-        expect(result.code).toBe(200);
         expect(result.data.didLevelUp).toBe(true);
         expect(result.data.newLevel).toBe(2);
-        expect(_mockCollections.animals.update).toHaveBeenCalledWith({
-            data: { level: 2, exp: 0 }
-        });
+        expect(result.data.currentExp).toBe(0);
+        expect(collections.animals.doc).toHaveBeenCalledWith(animalId);
+        expect(queries.update).toHaveBeenCalledWith({ data: { level: 2, exp: 0 } });
     });
 
-    test('should level up once and keep remaining EXP', async () => {
-        // Arrange
-        const animal = { _id: animalId, ownerId: openid, level: 1, exp: 150 };
-        _mockCollections.animals.get.mockResolvedValue({ data: [animal] });
-
-        // Act
-        const result = await checkLevelUp({ animalId }, {});
-
-        // Assert
-        expect(result.code).toBe(200);
+    it('should level up once and keep remaining EXP', async () => {
+        setupMocks({ ...mockAnimal, exp: 150 });
+        queries.update.mockResolvedValue({ stats: { updated: 1 } });
+        
+        const result = await checkLevelUp({ animalId });
+        
         expect(result.data.didLevelUp).toBe(true);
         expect(result.data.newLevel).toBe(2);
-        expect(_mockCollections.animals.update).toHaveBeenCalledWith({
-            data: { level: 2, exp: 50 }
-        });
+        expect(result.data.currentExp).toBe(50);
+        expect(queries.update).toHaveBeenCalledWith({ data: { level: 2, exp: 50 } });
     });
 
-    test('should level up multiple times if EXP is very high', async () => {
-        // Arrange
-        // Total EXP needed for lv1->3 is 100 + 250 = 350. Current EXP is 400.
-        const animal = { _id: animalId, ownerId: openid, level: 1, exp: 400 };
-        _mockCollections.animals.get.mockResolvedValue({ data: [animal] });
+    it('should level up multiple times and keep remaining EXP', async () => {
+        // Needs 100 + 200 = 300 EXP to reach level 3
+        setupMocks({ ...mockAnimal, exp: 350 });
+        queries.update.mockResolvedValue({ stats: { updated: 1 } });
 
-        // Act
-        const result = await checkLevelUp({ animalId }, {});
+        const result = await checkLevelUp({ animalId });
 
-        // Assert
-        expect(result.code).toBe(200);
         expect(result.data.didLevelUp).toBe(true);
         expect(result.data.newLevel).toBe(3);
-        expect(_mockCollections.animals.update).toHaveBeenCalledWith({
-            data: { level: 3, exp: 50 } // 400 - 100 - 250 = 50
-        });
+        expect(result.data.currentExp).toBe(50); // 350 - 100 - 200 = 50
+        expect(queries.update).toHaveBeenCalledWith({ data: { level: 3, exp: 50 } });
     });
 
-    test('should return 403 if trying to level up an unowned animal', async () => {
-        // Arrange
-        _mockCollections.animals.get.mockResolvedValue({ data: [] });
-        // Act
-        const result = await checkLevelUp({ animalId }, {});
-        // Assert
-        expect(result.code).toBe(403);
+    it('should return 404 if animal not found', async () => {
+        setupMocks(null); // No animal data
+        const result = await checkLevelUp({ animalId });
+        expect(result.code).toBe(404);
+        expect(result.message).toContain('Animal not found');
+    });
+
+    it('should return 500 if level up config is missing', async () => {
+        setupMocks(mockAnimal, null); // No config data
+        const result = await checkLevelUp({ animalId });
+        expect(result.code).toBe(500);
+        expect(result.message).toContain('configuration not found');
     });
 });

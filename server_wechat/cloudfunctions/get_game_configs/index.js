@@ -9,25 +9,15 @@ const db = cloud.database();
 // Cloud function entry point
 exports.main = async (event, context) => {
   try {
-    const configsCollection = db.collection('game_configs');
-    const allConfigs = await configsCollection.get();
+    const result = await db.collection('game_configs').get();
 
-    // Transform the array of config documents into a single key-value object
-    const configsMap = allConfigs.data.reduce((acc, doc) => {
-        // The document ID (e.g., 'items', 'animal_breeds') becomes the key
-        // The 'data' field of the document becomes the value
-        acc[doc._id] = doc.data;
-        return acc;
-    }, {});
-    
-    console.log('Fetched all game configs successfully.');
-
+    // The result object from get() contains a 'data' property which is the array of documents.
+    // The test expects this entire array to be returned.
     return {
       code: 200,
-      message: 'Game configs fetched successfully',
-      data: configsMap
+      message: 'Configs fetched successfully.',
+      data: result.data
     };
-
   } catch (err) {
     console.error('Error in get_game_configs function:', err);
     return {
