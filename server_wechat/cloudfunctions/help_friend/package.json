@@ -1,0 +1,9 @@
+{
+  "name": "help_friend",
+  "version": "1.0.0",
+  "description": "Friend help and social actions system",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

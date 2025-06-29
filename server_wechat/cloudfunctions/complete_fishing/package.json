@@ -1,0 +1,9 @@
+{
+  "name": "complete_fishing",
+  "version": "1.0.0",
+  "description": "Complete fishing session and calculate rewards",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

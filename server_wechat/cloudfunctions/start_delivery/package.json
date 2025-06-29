@@ -1,0 +1,9 @@
+{
+  "name": "start_delivery",
+  "version": "1.0.0",
+  "description": "Start delivery with random event system",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

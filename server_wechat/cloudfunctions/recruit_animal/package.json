@@ -1,0 +1,9 @@
+{
+  "name": "recruit_animal",
+  "version": "1.0.0",
+  "description": "Animal recruitment and gacha system",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
