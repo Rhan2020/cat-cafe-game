@@ -1,0 +1,22 @@
+{
+  "name": "server_global",
+  "version": "1.0.0",
+  "description": "该目录存放游戏支线战场（全球）的服务端代码。",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.0.0",
+    "express": "^5.1.0",
+    "mongoose": "^8.16.1"
+  },
+  "devDependencies": {
+    "jest": "^30.0.3",
+    "mongodb-memory-server": "^10.1.4",
+    "supertest": "^7.1.1"
+  }
+}

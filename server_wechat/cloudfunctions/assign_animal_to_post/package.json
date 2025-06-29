@@ -1,0 +1,14 @@
+{
+  "name": "assign_animal_to_post",
+  "version": "1.0.0",
+  "description": "Assigns an animal to a specific post in the cafe.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

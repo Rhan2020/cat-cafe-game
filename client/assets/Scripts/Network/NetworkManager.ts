@@ -1,56 +1,65 @@
 import { _decorator, Component, Node } from 'cc';
 const { ccclass, property } = _decorator;
 
-// This is a placeholder for the actual WeChat SDK
+// This provides type hints for wx cloud functions, if you have miniprogram-api-typings
 declare const wx: any;
 
 @ccclass('NetworkManager')
 export class NetworkManager extends Component {
-    private isInitialized = false;
+
+    public static Instance: NetworkManager = null;
 
     onLoad() {
-        this.initWeChatSDK();
-    }
-
-    initWeChatSDK() {
-        if (typeof wx === 'undefined') {
-            console.warn('WeChat SDK (wx) not found. Running in non-WeChat environment.');
+        if (NetworkManager.Instance === null) {
+            NetworkManager.Instance = this;
+            // Make this node persistent across scenes
+            this.node.parent = null; 
+        } else {
+            this.destroy();
             return;
         }
-
-        try {
-            wx.cloud.init({
-                // env: 'your-cloud-env-id' // Replace with your actual environment ID
-            });
-            this.isInitialized = true;
-            console.log("WeChat Cloud SDK initialized.");
-        } catch (e) {
-            console.error("Failed to initialize WeChat Cloud SDK", e);
-        }
     }
 
-    async callFunction(name: string, data: object = {}): Promise<any> {
-        if (!this.isInitialized) {
-            console.error("WeChat Cloud SDK not initialized. Cannot call cloud function.");
-            return Promise.reject("SDK not initialized");
+    /**
+     * Calls a cloud function and returns its result.
+     * @param name The name of the cloud function to call.
+     * @param data The data to pass to the cloud function.
+     * @returns A promise that resolves with the result from the cloud function.
+     */
+    public async callCloudFunction(name: string, data: object = {}): Promise<any> {
+        console.log(`[NetworkManager] Calling cloud function: ${name}`, data);
+        
+        // Basic check to see if we're in the WeChat Mini Game environment
+        if (typeof wx === 'undefined' || !wx.cloud) {
+            console.error("[NetworkManager] Not in WeChat Mini Game environment or cloud not initialized.");
+            // In a real game, you might want to return a mock response for testing on web.
+            return Promise.reject({ errCode: -1, errMsg: "Not in WeChat environment" });
         }
-
-        console.log(`Calling cloud function: ${name}`);
+        
         try {
-            const result = await wx.cloud.callFunction({
+            const response = await wx.cloud.callFunction({
                 name: name,
                 data: data
             });
 
-            if (result.result.code !== 200 && result.result.code !== 201) {
-                 console.error(`Cloud function ${name} returned an error:`, result.result);
-                 throw new Error(result.result.message);
-            }
+            console.log(`[NetworkManager] Response from ${name}:`, response);
 
-            return result.result;
-        } catch (error) {
-            console.error(`Error calling cloud function ${name}:`, error);
-            throw error;
+            // The 'result' field contains the object returned by the cloud function's main method
+            if (response.result) {
+                // You can add centralized error handling here, e.g., checking response.result.code
+                if (response.result.code && response.result.code !== 200 && response.result.code !== 201) {
+                   console.error(`[NetworkManager] Cloud function ${name} returned an error:`, response.result);
+                   // Optionally show a generic error message to the user
+                }
+                return response.result;
+            } else {
+                // This case is unusual but good to handle
+                throw new Error("Cloud function response did not contain a 'result' field.");
+            }
+        } catch (err) {
+            console.error(`[NetworkManager] Error calling cloud function ${name}:`, err);
+            // In a real game, you might want to show a network error UI to the user
+            return Promise.reject(err);
         }
     }
 } 
