@@ -21,8 +21,20 @@ exports.main = async (event, context) => {
 
   const { animalId, postId } = event;
 
+  // 输入验证
   if (!animalId || !postId) {
     return { code: 400, message: 'animalId and postId are required.' };
+  }
+  
+  // 验证postId格式
+  if (typeof postId !== 'string' || postId.length > 50) {
+    return { code: 400, message: 'Invalid postId format.' };
+  }
+  
+  // 预定义的有效岗位列表
+  const VALID_POSTS = ['post_kitchen', 'post_bar', 'post_delivery', 'post_reception', 'post_security'];
+  if (!VALID_POSTS.includes(postId)) {
+    return { code: 400, message: 'Invalid post. Allowed posts: ' + VALID_POSTS.join(', ') };
   }
 
   try {

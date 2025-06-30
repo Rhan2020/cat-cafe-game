@@ -2,6 +2,7 @@ import React from 'react';
 import { CloudProvider } from './services/CloudProvider';
 import { UserTable } from './components/UserTable';
 import { ConfigEditor } from './components/ConfigEditor';
+import { AssetManager } from './components/AssetManager';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Tabs, Layout } from 'antd';
 import 'antd/dist/reset.css'; // Import Antd styles
@@ -18,6 +19,11 @@ const items = [
     key: '2',
     label: `游戏配置编辑`,
     children: <ConfigEditor />,
+  },
+  {
+    key: '3',
+    label: `素材管理`,
+    children: <AssetManager />,
   },
 ];
 

@@ -106,26 +106,41 @@ exports.main = async (event, context) => {
     const lastLoginTime = new Date(user.last_login_time);
     const offlineSeconds = Math.floor((now.getTime() - lastLoginTime.getTime()) / 1000);
 
-    let earnedGold = 0;
-    if (offlineSeconds > 5) { // Only calculate if offline for more than 5 seconds
-      const [workingAnimalsRes, configsRes] = await Promise.all([
-        db.collection('animals').where({ _openid: openid, status: 'working' }).get(),
-        db.collection('game_configs').get()
-      ]);
+          let earnedGold = 0;
+      const MAX_OFFLINE_HOURS = 24; // 最大24小时离线收益
+      const MAX_OFFLINE_SECONDS = MAX_OFFLINE_HOURS * 3600;
       
-      const workingAnimals = workingAnimalsRes.data || [];
-      const breedConfigsDoc = configsRes.data.find(doc => doc._id === 'animal_breeds');
-      const breedConfigs = breedConfigsDoc ? breedConfigsDoc.data : [];
+      if (offlineSeconds > 5) { // Only calculate if offline for more than 5 seconds
+        // 限制离线时间上限
+        const cappedOfflineSeconds = Math.min(offlineSeconds, MAX_OFFLINE_SECONDS);
+        
+        const [workingAnimalsRes, configsRes] = await Promise.all([
+          db.collection('animals').where({ _openid: openid, status: 'working' }).get(),
+          db.collection('game_configs').get()
+        ]);
+        
+        const workingAnimals = workingAnimalsRes.data || [];
+        const breedConfigsDoc = configsRes.data.find(doc => doc._id === 'animal_breeds');
+        const breedConfigs = breedConfigsDoc ? breedConfigsDoc.data : [];
 
-      if (workingAnimals.length > 0 && breedConfigs.length > 0) {
-        const breedMap = new Map(breedConfigs.map(b => [b.breedId, b]));
-        const totalSpeed = workingAnimals.reduce((speed, animal) => {
-          const breed = breedMap.get(animal.breedId);
-          return speed + (breed?.baseAttributes?.speed || 0);
-        }, 0);
-        earnedGold = Math.floor(totalSpeed * offlineSeconds);
+        if (workingAnimals.length > 0 && breedConfigs.length > 0) {
+          const breedMap = new Map(breedConfigs.map(b => [b.breedId, b]));
+          let totalSpeed = 0;
+          
+          // 验证每个动物的有效性
+          for (const animal of workingAnimals) {
+            const breed = breedMap.get(animal.breedId);
+            if (breed && breed.baseAttributes && typeof breed.baseAttributes.speed === 'number') {
+              totalSpeed += Math.max(0, breed.baseAttributes.speed); // 确保速度非负
+            }
+          }
+          
+          // 计算收益，增加合理性检查
+          const baseEarnings = totalSpeed * cappedOfflineSeconds;
+          const MAX_EARNINGS_PER_SESSION = 1000000; // 单次最大收益100万金币
+          earnedGold = Math.floor(Math.min(baseEarnings, MAX_EARNINGS_PER_SESSION));
+        }
       }
-    }
 
     // Always update last_login_time, and increment gold only if it's earned
     await db.collection('users').doc(user._id).update({
