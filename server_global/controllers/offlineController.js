@@ -36,17 +36,19 @@ exports.claimOfflineEarnings = async (req, res) => {
       return res.status(400).json({ code: 400, message: 'No offline earnings' });
     }
 
-    user.gold += earnings;
-    user.statistics.totalEarnings += earnings;
+    const now = new Date();
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: req.user.id },
+      {
+        $inc: { gold: earnings, 'statistics.totalEarnings': earnings },
+        $set: { offlineEarnings: 0, lastActiveAt: now }
+      },
+      { new: true }
+    );
 
-    user.offlineEarnings = 0;
-    user.lastActiveAt = new Date();
+    logger.info('User %s claimed %d offline gold', updatedUser._id, earnings);
 
-    await user.save();
-
-    logger.info('User %s claimed %d offline gold', user._id, earnings);
-
-    return res.status(200).json({ code: 200, message: 'Offline earnings claimed', data: { goldEarned: earnings, currentGold: user.gold } });
+    return res.status(200).json({ code: 200, message: 'Offline earnings claimed', data: { goldEarned: earnings, currentGold: updatedUser.gold } });
   } catch (err) {
     logger.error('claimOfflineEarnings error: %s', err.message);
     return res.status(500).json({ code: 500, message: 'Internal Server Error', error: err.message });

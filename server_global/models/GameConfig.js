@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const { getCache, setCache } = require('../utils/cache');
 
 const GameConfigSchema = new Schema({
   // 配置类型
@@ -49,9 +50,13 @@ GameConfigSchema.index({ isActive: 1 });
 GameConfigSchema.index({ effectiveFrom: 1, effectiveTo: 1 });
 
 // 静态方法：获取有效配置
-GameConfigSchema.statics.getActiveConfig = function(configType) {
+GameConfigSchema.statics.getActiveConfig = async function(configType) {
+  const cacheKey = `gameConfig:${configType}`;
+  const cached = await getCache(cacheKey);
+  if (cached) return JSON.parse(cached);
+
   const now = new Date();
-  return this.findOne({
+  const doc = await this.findOne({
     configType,
     isActive: true,
     effectiveFrom: { $lte: now },
@@ -61,6 +66,8 @@ GameConfigSchema.statics.getActiveConfig = function(configType) {
       { effectiveTo: { $gt: now } }
     ]
   });
+  if (doc) await setCache(cacheKey, doc, 300);
+  return doc;
 };
 
 const GameConfig = mongoose.model('GameConfig', GameConfigSchema);

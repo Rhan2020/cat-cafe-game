@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const logger = require('../utils/logger');
+const { getCache, setCache } = require('../utils/cache');
 
 /**
  * 获取排行榜
@@ -27,7 +28,15 @@ exports.getRankings = async (req, res) => {
     }
 
     const projection = { nickname: 1, avatarUrl: 1, gold: 1, 'fishing.totalCatches': 1 };
+    const cacheKey = `rankings:${type}:${limit}`;
+    const cached = await getCache(cacheKey);
+    if (cached) {
+      return res.status(200).json({ code: 200, message: 'Rankings fetched', data: JSON.parse(cached) });
+    }
+
     const users = await User.find({}).sort({ [sortField]: -1 }).limit(limit).select(projection).lean();
+
+    await setCache(cacheKey, users, 60); // 60s TTL
 
     res.status(200).json({ code: 200, message: 'Rankings fetched', data: users });
   } catch (err) {

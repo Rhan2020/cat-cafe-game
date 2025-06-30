@@ -24,11 +24,25 @@ async function calculateOfflineEarnings(user) {
 
     const baseRate = (user.shop?.level || 1) * 10; // gold/min
 
+    // 设施加成
+    const facilities = user.shop?.facilities || {};
+    const facilityConfigDoc = await require('./gameConfigCache').getConfig('facility_upgrades');
+    let facilityBonusRate = 0;
+    if (facilityConfigDoc && facilityConfigDoc.data) {
+      for (const [fid, lvl] of Object.entries(facilities)) {
+        const cfg = facilityConfigDoc.data.find(f => f.id === fid);
+        if (cfg) {
+          const levelCfg = cfg.levels.find(l => l.level === lvl);
+          if (levelCfg?.productionBonus) facilityBonusRate += levelCfg.productionBonus; // gold/min
+        }
+      }
+    }
+
     // 查询工作中的动物
     const workers = await Animal.find({ ownerId: user._id, status: 'working' }, 'attributes.cooking').lean();
     const workerBonusRate = workers.reduce((sum, a) => sum + (a.attributes?.cooking || 0) * 0.5, 0);
 
-    const earningsPerMin = baseRate + workerBonusRate;
+    const earningsPerMin = baseRate + workerBonusRate + facilityBonusRate;
     const total = earningsPerMin * minutes;
 
     logger.info('Offline earnings calculated for user %s: %d gold (%d min, rate %d)', user._id, total, minutes, earningsPerMin);

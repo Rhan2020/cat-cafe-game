@@ -1,8 +1,6 @@
 module.exports = {
   testEnvironment: 'node',
-  transformIgnorePatterns: [
-    '/node_modules/(?!(nanoid)/)'
-  ],
+  // nanoid 已通过 moduleNameMapper mock，无需额外 transformIgnore
   moduleNameMapper: {
     '^nanoid(.*)$': '<rootDir>/__mocks__/nanoid.js'
   }

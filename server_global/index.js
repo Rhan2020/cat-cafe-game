@@ -65,6 +65,7 @@ const gameRoutes = require('./routes/gameRoutes');
 const visitorRoutes = require('./routes/visitorRoutes');
 const contractRoutes = require('./routes/contractRoutes');
 const rankingRoutes = require('./routes/rankingRoutes');
+const facilityRoutes = require('./routes/facilityRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/assets', assetRoutes);
@@ -72,12 +73,13 @@ app.use('/api/game', gameRoutes);
 app.use('/api/visitor', visitorRoutes);
 app.use('/api/contract', contractRoutes);
 app.use('/api/rankings', rankingRoutes);
+app.use('/api/facilities', facilityRoutes);
 
 // 静态文件服务（素材文件）
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 404处理
-app.use('*', (req, res) => {
+// 404处理（使用通配 middleware，避免 Express 5 对 '*' 路径的 pathToRegexp 错误）
+app.use((req, res) => {
   res.status(404).json({
     code: 404,
     message: '接口不存在',
