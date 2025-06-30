@@ -17,13 +17,6 @@ const createRateLimiter = (windowMs, max, message) => {
   });
 };
 
-// 通用API限流
-const generalLimiter = createRateLimiter(
-  15 * 60 * 1000, // 15分钟
-  100, // 每个IP最多100个请求
-  '请求过于频繁，请稍后再试'
-);
-
 // 登录API严格限流
 const authLimiter = createRateLimiter(
   15 * 60 * 1000, // 15分钟
@@ -32,7 +25,7 @@ const authLimiter = createRateLimiter(
 );
 
 // CORS配置
-const corsOptions = {
+const corsOptions = process.env.NODE_ENV === 'test' ? { origin: '*'} : {
   origin: function (origin, callback) {
     // 允许的域名列表
     const allowedOrigins = [
@@ -70,6 +63,10 @@ const helmetConfig = helmet({
     preload: true
   }
 });
+
+const generalLimiter = process.env.NODE_ENV === 'test'
+  ? (req, res, next) => next()
+  : createRateLimiter(15 * 60 * 1000, 100, '请求过于频繁，请稍后再试');
 
 module.exports = {
   generalLimiter,

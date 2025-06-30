@@ -1,37 +1,50 @@
 const { createClient } = require('redis');
 const logger = require('./logger');
 
-const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-const redisClient = createClient({ url: redisUrl });
+/********************  内存缓存作为降级  ************************/ 
+const memoryCache = new Map();
+const setMem = (key, value, ttl) => {
+  memoryCache.set(key, { value, exp: Date.now() + ttl * 1000 });
+};
+const getMem = (key) => {
+  const item = memoryCache.get(key);
+  if (!item) return null;
+  if (Date.now() > item.exp) { memoryCache.delete(key); return null; }
+  return item.value;
+};
+/***************************************************************/
 
-redisClient.on('error', (err) => logger.error('Redis error: %s', err.message));
-
+let redisClient;
 (async () => {
   try {
-    if (!redisClient.isOpen) await redisClient.connect();
+    const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+    redisClient = createClient({ url: redisUrl });
+    redisClient.on('error', (e) => logger.error('Redis error: %s', e.message));
+    await redisClient.connect();
     logger.info('Redis connected: %s', redisUrl);
-  } catch (err) {
-    logger.error('Redis connect failed: %s', err.message);
+  } catch (e) {
+    logger.error('Redis init failed -> fallback to memory cache: %s', e.message);
   }
 })();
 
 async function getCache(key) {
-  try {
-    if (!redisClient.isReady) return null;
-    return await redisClient.get(key);
-  } catch (err) {
-    logger.warn('Redis get error for key %s: %s', key, err.message);
-    return null;
+  // Redis 优先
+  if (redisClient?.isReady) {
+    try {
+      const val = await redisClient.get(key);
+      if (val) return JSON.parse(val);
+    } catch (e) { logger.warn('Redis get %s err: %s', key, e.message); }
   }
+  return getMem(key);
 }
 
-async function setCache(key, value, ttlSeconds = 60) {
-  try {
-    if (!redisClient.isReady) return;
-    await redisClient.setEx(key, ttlSeconds, JSON.stringify(value));
-  } catch (err) {
-    logger.warn('Redis set error for key %s: %s', key, err.message);
+async function setCache(key, value, ttl = 60) {
+  if (redisClient?.isReady) {
+    try {
+      await redisClient.setEx(key, ttl, JSON.stringify(value));
+    } catch (e) { logger.warn('Redis set %s err: %s', key, e.message); }
   }
+  setMem(key, value, ttl);
 }
 
-module.exports = { redisClient, getCache, setCache };
+module.exports = { getCache, setCache };

@@ -87,12 +87,16 @@ const rateLimit = (windowMs, max) => {
   });
 };
 
+function generateToken(userId, role = 'user') {
+  return jwt.sign({ userId, role }, process.env.JWT_SECRET || 'fallback-secret', { expiresIn: '7d' });
+}
+
 module.exports = {
-  // 兼容旧名称
   protect: authenticateToken,
   authenticateToken,
   requireRole,
   requireAdmin,
   requireEditor,
-  rateLimit
+  rateLimit,
+  generateToken
 };
