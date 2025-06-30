@@ -5119,3 +5119,5 @@
 {"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 12:21:10"}
 {"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 12:21:12"}
 {"level":"info","message":"Offline earnings calculated for user 686281386313ad0b3618a3db: 900 gold (60 min, rate 15)","timestamp":"2025-06-30 12:21:12"}
+{"level":"info","message":"Offline earnings calculated for user 6862827755cec765339e45a7: 900 gold (60 min, rate 15)","timestamp":"2025-06-30 12:26:31"}
+{"level":"info","message":"Offline earnings calculated for user 686282868f3e21e0a679790e: 900 gold (60 min, rate 15)","timestamp":"2025-06-30 12:26:46"}

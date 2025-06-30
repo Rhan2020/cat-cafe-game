@@ -1,0 +1,1 @@
+module.exports = () => ({ openapi:'3.0.0', info:{ title:'mock', version:'0' }, paths:{} });

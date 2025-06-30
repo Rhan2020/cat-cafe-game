@@ -1,7 +1,9 @@
+require('express-async-errors');
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 require('dotenv').config();
+const config = require('./utils/config');
 
 // 导入中间件
 const errorHandler = require('./middleware/errorHandler');
@@ -10,7 +12,7 @@ const { generalLimiter, helmetConfig, corsOptions } = require('./middleware/secu
 const { i18nMiddleware } = require('./utils/i18n');
 
 const app = express();
-const port = process.env.PORT || 8080;
+const port = config.port;
 
 // 信任代理（用于获取真实IP）
 app.set('trust proxy', 1);
@@ -35,11 +37,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 const { connectDB } = require('./utils/connectDB');
 
 // 仅在非测试环境下自动连接数据库（测试环境将由测试套件自行管理连接）
-if (process.env.NODE_ENV !== 'test') {
+if (config.env !== 'test') {
   connectDB().catch(err => {
     console.error('MongoDB connection error:', err);
     // 生产环境连接失败时终止进程；其余环境抛出错误供外层捕获
-    if (process.env.NODE_ENV === 'production') {
+    if (config.env === 'production') {
       process.exit(1);
     }
   });
@@ -56,7 +58,7 @@ app.get('/health', (req, res) => {
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: config.env
   });
 });
 
@@ -109,10 +111,28 @@ if (!fs.existsSync(logsDir)) {
 
 app.use(i18nMiddleware);
 
-if (process.env.NODE_ENV !== 'test') {
+// *********************  Swagger API 文档  ************************
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+
+const swaggerSpec = swaggerJsdoc({
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: '猫咪咖啡馆与外卖江湖 API',
+      version: '1.0.0'
+    }
+  },
+  apis: ['./routes/*.js', './models/*.js'] // 自动扫描注释
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// *****************************************************************
+
+if (config.env !== 'test') {
   app.listen(port, () => {
     console.log(`全球服务器正在端口 ${port} 上运行`);
-    console.log(`环境: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`环境: ${config.env}`);
     console.log(`健康检查: http://localhost:${port}/health`);
   });
 }
