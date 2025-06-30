@@ -1,0 +1,311 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "description": "《猫咪咖啡馆与外卖江湖》美术资源配置文件",
+    "lastUpdated": "2024-01-01"
+  },
+  "characters": {
+    "cats": {
+      "basePath": "Art/Characters/Cats/",
+      "sizes": {
+        "standard": "128x128",
+        "icon": "64x64",
+        "thumbnail": "32x32"
+      },
+      "rarities": {
+        "N": {
+          "borderColor": "#F5F5F5",
+          "glowEffect": "none",
+          "examples": ["orange_cat", "white_cat", "black_cat", "gray_cat"]
+        },
+        "R": {
+          "borderColor": "#87CEEB",
+          "glowEffect": "blue_glow",
+          "examples": ["sakura_cat", "gentleman_cat", "milktea_cat", "starry_cat"]
+        },
+        "SR": {
+          "borderColor": "#9370DB",
+          "glowEffect": "purple_glow",
+          "examples": ["princess_cat", "mage_cat", "angel_cat", "ninja_cat"]
+        },
+        "SSR": {
+          "borderColor": "#FFD700",
+          "glowEffect": "golden_glow",
+          "examples": ["phoenix_cat", "dragon_cat", "unicorn_cat", "stellar_cat"]
+        },
+        "USR": {
+          "borderColor": "rainbow",
+          "glowEffect": "rainbow_glow",
+          "examples": ["genesis_cat", "spacetime_cat", "destiny_cat", "infinite_cat"]
+        }
+      },
+      "animations": {
+        "idle": {
+          "frames": 6,
+          "duration": 2.0,
+          "loop": true
+        },
+        "work": {
+          "frames": 8,
+          "duration": 1.5,
+          "loop": true
+        },
+        "move": {
+          "frames": 6,
+          "duration": 1.0,
+          "loop": true
+        },
+        "happy": {
+          "frames": 4,
+          "duration": 0.8,
+          "loop": false
+        },
+        "sleep": {
+          "frames": 4,
+          "duration": 3.0,
+          "loop": true
+        }
+      }
+    },
+    "dogs": {
+      "basePath": "Art/Characters/Dogs/",
+      "sizes": {
+        "standard": "144x144"
+      },
+      "types": {
+        "welcome": {
+          "examples": ["golden_welcome", "shiba_reception", "husky_service"]
+        },
+        "guard": {
+          "examples": ["german_guard", "rottweiler_security", "border_analyst"]
+        }
+      }
+    },
+    "mice": {
+      "basePath": "Art/Characters/Mice/",
+      "sizes": {
+        "standard": "96x96"
+      },
+      "types": {
+        "hamster": ["cream_hamster", "chocolate_hamster", "matcha_hamster"],
+        "chinchilla": ["cloud_chinchilla", "rainbow_chinchilla"],
+        "squirrel": ["nut_squirrel", "berry_squirrel"]
+      }
+    }
+  },
+  "scenes": {
+    "coffeeShop": {
+      "basePath": "Art/Scenes/CoffeeShop/",
+      "layers": {
+        "background": ["walls_floor.png", "ceiling_lighting.png", "windows_doors.png"],
+        "furniture": ["counter_bar.png", "tables_chairs.png", "kitchen_equipment.png"],
+        "decorations": ["plants_flowers.png", "artwork_posters.png", "accessories.png"],
+        "equipment": ["coffee_machine.png", "oven_fridge.png", "delivery_station.png"],
+        "effects": ["steam_particles.png", "light_effects.png", "ambient_glow.png"]
+      },
+      "workstations": {
+        "bar": {
+          "position": {"x": 200, "y": 800},
+          "size": {"width": 300, "height": 200},
+          "clickArea": {"x": 150, "y": 750, "width": 400, "height": 300}
+        },
+        "kitchen": {
+          "position": {"x": 600, "y": 800},
+          "size": {"width": 300, "height": 200},
+          "clickArea": {"x": 550, "y": 750, "width": 400, "height": 300}
+        },
+        "delivery": {
+          "position": {"x": 900, "y": 800},
+          "size": {"width": 150, "height": 200},
+          "clickArea": {"x": 850, "y": 750, "width": 250, "height": 300}
+        },
+        "welcome": {
+          "position": {"x": 100, "y": 400},
+          "size": {"width": 200, "height": 150},
+          "clickArea": {"x": 50, "y": 350, "width": 300, "height": 250}
+        }
+      }
+    },
+    "fishingArea": {
+      "basePath": "Art/Scenes/FishingArea/",
+      "layers": {
+        "background": ["sky_clouds.png", "distant_mountains.png", "horizon_line.png"],
+        "water": ["pond_base.png", "water_surface.png", "water_plants.png", "ripple_effects.png"],
+        "platform": ["wooden_dock.png", "fishing_equipment.png", "seating_area.png"],
+        "landscape": ["trees_bamboo.png", "flowers_plants.png", "stones_bridge.png", "pathways.png"],
+        "buildings": ["pavilion.png", "tool_shed.png", "rest_facilities.png"],
+        "effects": ["water_ripples.png", "leaf_particles.png", "light_rays.png", "weather_effects.png"]
+      }
+    }
+  },
+  "ui": {
+    "basePath": "Art/UI/",
+    "buttons": {
+      "primary": {
+        "normal": "primary_normal.png",
+        "pressed": "primary_pressed.png",
+        "disabled": "primary_disabled.png",
+        "highlight": "primary_highlight.png"
+      },
+      "secondary": {
+        "normal": "secondary_normal.png",
+        "pressed": "secondary_pressed.png",
+        "disabled": "secondary_disabled.png"
+      },
+      "icon": {
+        "settings": "icon_settings.png",
+        "help": "icon_help.png",
+        "close": "icon_close.png",
+        "back": "icon_back.png"
+      }
+    },
+    "icons": {
+      "resources": {
+        "gold": "gold_coin.png",
+        "diamond": "diamond.png",
+        "exp": "experience.png"
+      },
+      "functions": {
+        "cats": "cat_management.png",
+        "shop": "coffee_shop.png",
+        "fishing": "fishing_area.png",
+        "gacha": "card_draw.png",
+        "tasks": "task_scroll.png"
+      },
+      "status": {
+        "success": "success_check.png",
+        "failure": "failure_x.png",
+        "warning": "warning_exclamation.png",
+        "info": "info_circle.png"
+      }
+    },
+    "panels": {
+      "info": "info_panel.png",
+      "dialog": "dialog_box.png",
+      "popup": "popup_window.png",
+      "drawer": "drawer_panel.png"
+    },
+    "progress": {
+      "basic": "progress_bar_basic.png",
+      "cat_themed": "progress_bar_cat.png",
+      "fish_themed": "progress_bar_fish.png",
+      "coffee_themed": "progress_bar_coffee.png"
+    }
+  },
+  "items": {
+    "basePath": "Art/Items/",
+    "food": {
+      "coffee": {
+        "americano": "americano.png",
+        "latte": "latte.png",
+        "cappuccino": "cappuccino.png",
+        "cat_latte": "cat_latte_art.png",
+        "rainbow_mocha": "rainbow_mocha.png"
+      },
+      "desserts": {
+        "cheesecake": "cheesecake.png",
+        "chocolate_cake": "chocolate_cake.png",
+        "rainbow_cake": "rainbow_cake.png",
+        "macaron": "macaron.png",
+        "cookie": "cookie.png"
+      },
+      "ingredients": {
+        "strawberry": "strawberry.png",
+        "lemon": "lemon.png",
+        "milk": "milk.png",
+        "cream": "cream.png"
+      }
+    },
+    "equipment": {
+      "coffee_machine": "espresso_machine.png",
+      "grinder": "coffee_grinder.png",
+      "oven": "baking_oven.png",
+      "mixer": "stand_mixer.png"
+    },
+    "special": {
+      "destiny_watch": {
+        "icon": "destiny_watch.png",
+        "effect": "time_distortion_effect.png",
+        "rarity": "USR"
+      },
+      "lucky_bell": {
+        "icon": "lucky_bell.png",
+        "effect": "star_sparkle_effect.png",
+        "rarity": "SSR"
+      },
+      "cat_cookie": {
+        "icon": "cat_paw_cookie.png",
+        "effect": "warm_glow_effect.png",
+        "rarity": "R"
+      }
+    },
+    "currency": {
+      "gold": "gold_coin.png",
+      "diamond": "blue_diamond.png",
+      "cat_coin": "cat_head_coin.png",
+      "heart_coin": "heart_shaped_coin.png"
+    }
+  },
+  "effects": {
+    "basePath": "Art/Effects/",
+    "particles": {
+      "steam": "coffee_steam.png",
+      "sparkle": "star_sparkle.png",
+      "hearts": "heart_particles.png",
+      "coins": "coin_burst.png",
+      "rainbow": "rainbow_particles.png"
+    },
+    "animations": {
+      "level_up": "level_up_burst.png",
+      "success": "success_celebration.png",
+      "failure": "failure_shake.png",
+      "loading": "loading_spinner.png"
+    },
+    "weather": {
+      "rain": "rain_drops.png",
+      "snow": "snow_flakes.png",
+      "sunshine": "sun_rays.png"
+    }
+  },
+  "audio": {
+    "basePath": "Art/Audio/",
+    "bgm": {
+      "main_scene": "cafe_ambient.mp3",
+      "fishing_area": "peaceful_nature.mp3",
+      "menu": "cheerful_melody.mp3"
+    },
+    "sfx": {
+      "button_click": "button_click.wav",
+      "cat_meow": "cat_meow.wav",
+      "coffee_brew": "coffee_brewing.wav",
+      "bell_ring": "bell_chime.wav",
+      "coin_collect": "coin_pickup.wav",
+      "level_up": "level_up_fanfare.wav"
+    }
+  },
+  "fonts": {
+    "basePath": "Art/Fonts/",
+    "chinese": {
+      "regular": "chinese_regular.ttf",
+      "bold": "chinese_bold.ttf",
+      "decorative": "chinese_decorative.ttf"
+    },
+    "numbers": {
+      "display": "number_display.ttf"
+    }
+  },
+  "localization": {
+    "supported_languages": ["zh-CN", "en-US", "ja-JP"],
+    "text_config_path": "Art/Localization/",
+    "fallback_language": "zh-CN"
+  },
+  "performance": {
+    "texture_compression": {
+      "mobile": "ETC2",
+      "web": "DXT"
+    },
+    "max_texture_size": 2048,
+    "sprite_atlas_size": 1024,
+    "animation_frame_rate": 30
+  }
+}
