@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { logger } = require('./logging');
+const expressRateLimit = require('express-rate-limit');
 
 // JWT token验证中间件
 const authenticateToken = (req, res, next) => {
@@ -70,9 +71,26 @@ const requireAdmin = requireRole(['admin', 'super_admin']);
 // 编辑权限验证（管理员或编辑者）
 const requireEditor = requireRole(['admin', 'super_admin', 'editor']);
 
+// 快速创建限流器（用于路由）
+const rateLimit = (windowMs, max) => {
+  return expressRateLimit({
+    windowMs,
+    max,
+    message: {
+      code: 429,
+      message: '请求过于频繁，请稍后再试'
+    },
+    standardHeaders: true,
+    legacyHeaders: false
+  });
+};
+
 module.exports = {
+  // 兼容旧名称
+  protect: authenticateToken,
   authenticateToken,
   requireRole,
   requireAdmin,
-  requireEditor
+  requireEditor,
+  rateLimit
 };

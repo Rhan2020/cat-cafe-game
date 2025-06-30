@@ -7,6 +7,7 @@ require('dotenv').config();
 const errorHandler = require('./middleware/errorHandler');
 const { httpLogger } = require('./middleware/logging');
 const { generalLimiter, helmetConfig, corsOptions } = require('./middleware/security');
+const { i18nMiddleware } = require('./utils/i18n');
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -60,9 +61,15 @@ app.get('/health', (req, res) => {
 // API路由
 const userRoutes = require('./routes/userRoutes');
 const assetRoutes = require('./routes/assetRoutes');
+const gameRoutes = require('./routes/gameRoutes');
+const visitorRoutes = require('./routes/visitorRoutes');
+const contractRoutes = require('./routes/contractRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/assets', assetRoutes);
+app.use('/api/game', gameRoutes);
+app.use('/api/visitor', visitorRoutes);
+app.use('/api/contract', contractRoutes);
 
 // 静态文件服务（素材文件）
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -85,6 +92,8 @@ const logsDir = path.join(__dirname, 'logs');
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
 }
+
+app.use(i18nMiddleware);
 
 app.listen(port, () => {
   console.log(`全球服务器正在端口 ${port} 上运行`);

@@ -1,0 +1,14 @@
+{
+  "common": {
+    "success": "Success",
+    "error": "Error",
+    "unauthorized": "Unauthorized",
+    "not_found": "Not Found",
+    "internal_error": "Internal Server Error"
+  },
+  "invite": {
+    "created": "Contract invite created",
+    "accepted": "Contract invite accepted",
+    "expired": "Invite expired"
+  }
+}

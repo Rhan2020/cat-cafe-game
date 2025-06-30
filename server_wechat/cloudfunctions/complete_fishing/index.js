@@ -211,7 +211,16 @@ async function calculateFishingCatches(session) {
  * 获取鱼类配置
  */
 async function getFishConfiguration() {
-  // 这里应该从配置中获取，为了简化，直接返回预设配置
+  try {
+    const configResult = await db.collection('game_configs').doc('fish_types').get();
+    if (configResult.data && configResult.data.data && configResult.data.data.length > 0) {
+      return configResult.data.data;
+    }
+  } catch (err) {
+    console.warn('Failed to fetch fish_types config, fallback to defaults:', err.message);
+  }
+
+  // fallback 默认值
   return [
     { itemId: 'fish_common_1', name: '小鲫鱼', rarity: 'common', weight: 50 },
     { itemId: 'fish_common_2', name: '小鲤鱼', rarity: 'common', weight: 40 },
