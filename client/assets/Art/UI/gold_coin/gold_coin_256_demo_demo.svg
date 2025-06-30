@@ -1,0 +1,11 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="128" cy="128" r="124" fill="url(#goldGradient)" stroke="#CD853F" stroke-width="2"/>
+  <text x="128" y="136" text-anchor="middle" font-family="serif" font-size="42" font-weight="bold" fill="#8B4513">金</text>
+  <defs>
+    <radialGradient id="goldGradient">
+      <stop offset="0%" stop-color="#FFEF94"/>
+      <stop offset="70%" stop-color="#FFD700"/>
+      <stop offset="100%" stop-color="#B8860B"/>
+    </radialGradient>
+  </defs>
+</svg>

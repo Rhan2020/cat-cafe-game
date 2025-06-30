@@ -1,0 +1,11 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <polygon points="32,12 52,32 32,57 12,32" fill="url(#diamondGradient)" stroke="#191970" stroke-width="2"/>
+  <text x="32" y="56" text-anchor="middle" font-family="serif" font-size="8" font-weight="bold" fill="#191970">钻</text>
+  <defs>
+    <linearGradient id="diamondGradient">
+      <stop offset="0%" stop-color="#E6E6FA"/>
+      <stop offset="50%" stop-color="#9370DB"/>
+      <stop offset="100%" stop-color="#4169E1"/>
+    </linearGradient>
+  </defs>
+</svg>

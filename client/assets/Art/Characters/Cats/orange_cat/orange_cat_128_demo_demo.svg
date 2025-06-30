@@ -1,0 +1,15 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- 猫头 -->
+  <circle cx="64" cy="64" r="42" fill="#FFA500" stroke="#8B4513" stroke-width="1"/>
+  <!-- 耳朵 -->
+  <polygon points="49,44 59,34 64,44" fill="#FFA500"/>
+  <polygon points="64,44 69,34 79,44" fill="#FFA500"/>
+  <!-- 眼睛 -->
+  <circle cx="56" cy="59" r="3" fill="#000"/>
+  <circle cx="72" cy="59" r="3" fill="#000"/>
+  <!-- 鼻子 -->
+  <polygon points="64,66 62,70 66,70" fill="#FFB6C1"/>
+  <!-- 嘴巴 -->
+  <path d="M 64 70 Q 58 76, 52 72" stroke="#8B4513" stroke-width="1" fill="none"/>
+  <path d="M 64 70 Q 70 76, 76 72" stroke="#8B4513" stroke-width="1" fill="none"/>
+</svg>

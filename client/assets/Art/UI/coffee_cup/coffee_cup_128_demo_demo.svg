@@ -1,0 +1,18 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- 杯子主体 -->
+  <path d="M 32 42 L 37 118 Q 37 123, 47 123 L 81 123 Q 91 123, 91 118 L 96 42 Z" 
+        fill="url(#cupGradient)" stroke="#8B4513" stroke-width="2"/>
+  <!-- 杯口 -->
+  <ellipse cx="64" cy="42" rx="32" ry="4" fill="#F5DEB3" stroke="#8B4513" stroke-width="1"/>
+  <!-- 咖啡液面 -->
+  <ellipse cx="64" cy="45" rx="29" ry="3" fill="#8B4513"/>
+  <!-- 把手 -->
+  <path d="M 96 64 Q 111 64, 111 85 Q 111 106, 96 106" 
+        fill="none" stroke="#8B4513" stroke-width="4"/>
+  <defs>
+    <linearGradient id="cupGradient">
+      <stop offset="0%" stop-color="#F5DEB3"/>
+      <stop offset="100%" stop-color="#DEB887"/>
+    </linearGradient>
+  </defs>
+</svg>
