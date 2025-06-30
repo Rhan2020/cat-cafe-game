@@ -1,4 +1,42 @@
 {
+  "globalStyle": "kawaii_cartoon",
+  "styleProfile": {
+    "kawaii_cartoon": {
+      "name": "可爱卡通 (Kawaii Cartoon)",
+      "description": "以明亮、柔和的粉彩色系为主，所有物体和角色都有着圆润的线条和Q萌的造型。",
+      "palette": {
+        "primary_bg": "#FFF0F5",
+        "secondary_bg": "#E6E6FA",
+        "primary_accent": "#FFB6C1",
+        "secondary_accent": "#87CEFA",
+        "text_main": "#4B4B4B",
+        "text_light": "#7F7F7F",
+        "pastel_pink": "#FFD1DC",
+        "sky_blue": "#B0E0E6",
+        "mint_green": "#98FB98",
+        "creamy_yellow": "#FFFACD",
+        "soft_lavender": "#E6E6FA"
+      },
+      "shapes": {
+        "default": "rounded_corners",
+        "buttons": "pill_shape"
+      },
+      "line_style": {
+        "type": "soft_outline",
+        "color": "#6D6D6D",
+        "thickness": "medium"
+      },
+      "font_style": {
+        "name": "bubbly_and_rounded",
+        "variants": ["Regular", "Bold"]
+      },
+      "effects": {
+        "glow": "soft_glow",
+        "particles": "sparkles",
+        "animation": "bouncy"
+      }
+    }
+  },
   "metadata": {
     "version": "1.0.0",
     "description": "《猫咪咖啡馆与外卖江湖》美术资源配置文件",
@@ -19,23 +57,23 @@
           "examples": ["orange_cat", "white_cat", "black_cat", "gray_cat"]
         },
         "R": {
-          "borderColor": "#87CEEB",
-          "glowEffect": "blue_glow",
+          "borderColor": "#B0E0E6",
+          "glowEffect": "soft_glow",
           "examples": ["sakura_cat", "gentleman_cat", "milktea_cat", "starry_cat"]
         },
         "SR": {
-          "borderColor": "#9370DB",
-          "glowEffect": "purple_glow",
+          "borderColor": "#E6E6FA",
+          "glowEffect": "soft_glow",
           "examples": ["princess_cat", "mage_cat", "angel_cat", "ninja_cat"]
         },
         "SSR": {
-          "borderColor": "#FFD700",
-          "glowEffect": "golden_glow",
+          "borderColor": "#FFFACD",
+          "glowEffect": "sparkles",
           "examples": ["phoenix_cat", "dragon_cat", "unicorn_cat", "stellar_cat"]
         },
         "USR": {
-          "borderColor": "rainbow",
-          "glowEffect": "rainbow_glow",
+          "borderColor": "pastel_rainbow",
+          "glowEffect": "rainbow_sparkles",
           "examples": ["genesis_cat", "spacetime_cat", "destiny_cat", "infinite_cat"]
         }
       },
@@ -139,6 +177,7 @@
     }
   },
   "ui": {
+    "style": "kawaii_cartoon",
     "basePath": "Art/UI/",
     "buttons": {
       "primary": {

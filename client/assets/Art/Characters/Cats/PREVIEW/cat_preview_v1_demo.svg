@@ -1,0 +1,42 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="soft-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
+      <feOffset in="blur" dx="2" dy="3" result="offsetBlur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.3" result="offsetColor"/>
+      <feComposite in="offsetColor" in2="offsetBlur" operator="in" result="offsetBlur"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+     <radialGradient id="bodyGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" style="stop-color:white; stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#FFFACD; stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <g filter="url(#soft-shadow)">
+    <!-- 身体: 肥嘟嘟的椭圆 -->
+    <ellipse cx="128" cy="148" rx="85" ry="64" fill="url(#bodyGradient)" />
+    
+    <!-- 头部: 更圆，稍微前倾 -->
+    <circle cx="128" cy="118" r="73.0" fill="#FFFACD" />
+    <circle cx="128" cy="118" r="73.0" fill="url(#bodyGradient)" />
+    
+    <!-- 耳朵 -->
+    <path d="M 78 78 Q 68 48, 108 58" fill="#FFFACD" stroke="#6D6D6D" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M 178 78 Q 188 48, 148 58" fill="#FFFACD" stroke="#6D6D6D" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- 闭着的眼睛，幸福的表情 -->
+    <path d="M 98 113 Q 108 123, 118 113" stroke="#6D6D6D" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M 138 113 Q 148 123, 158 113" stroke="#6D6D6D" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+    <!-- 小鼻子和嘴巴 -->
+    <path d="M 125 133 L 131 133 L 128 138 Z" fill="#FFB6C1"/>
+    
+    <!-- 爪子/手 -->
+    <circle cx="83" cy="158" r="15" fill="#FFFACD"/>
+    <circle cx="173" cy="158" r="15" fill="#FFFACD"/>
+   </g>
+</svg>

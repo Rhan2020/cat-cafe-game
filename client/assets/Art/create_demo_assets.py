@@ -8,6 +8,23 @@
 import os
 import subprocess
 import base64
+import json
+from pathlib import Path
+
+# --- 全局配置 ---
+CONFIG_FILE = 'art_config.json'
+
+def load_config():
+    """加载并返回JSON配置文件"""
+    try:
+        with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"错误: 配置文件 '{CONFIG_FILE}' 未找到。")
+        return None
+    except json.JSONDecodeError:
+        print(f"错误: 配置文件 '{CONFIG_FILE}' 格式无效。")
+        return None
 
 def ensure_dir(path):
     """确保目录存在"""
@@ -71,24 +88,65 @@ def create_diamond_demo(output_path, size):
 </svg>'''
     return create_simple_svg_png(svg_content, output_path, size)
 
-def create_cat_demo(output_path, size, color):
-    """创建猫咪演示素材"""
+def create_kawaii_cat_svg(size, style_profile):
+    """创建可爱风格的猫咪SVG内容 (V3, 模仿AI手绘感)"""
+    palette = style_profile['palette']
+    line_style = style_profile['line_style']
+    
+    body_color = palette.get('creamy_yellow', '#FFFACD')
+    line_color = line_style.get('color', '#6D6D6D')
+    shadow_color = "#000000"
+    line_width = 2.5
+
     center = size // 2
+    
     svg_content = f'''<svg width="{size}" height="{size}" viewBox="0 0 {size} {size}" xmlns="http://www.w3.org/2000/svg">
-  <!-- 猫头 -->
-  <circle cx="{center}" cy="{center}" r="{size//3}" fill="{color}" stroke="#8B4513" stroke-width="1"/>
-  <!-- 耳朵 -->
-  <polygon points="{center-15},{center-20} {center-5},{center-30} {center},{center-20}" fill="{color}"/>
-  <polygon points="{center},{center-20} {center+5},{center-30} {center+15},{center-20}" fill="{color}"/>
-  <!-- 眼睛 -->
-  <circle cx="{center-8}" cy="{center-5}" r="3" fill="#000"/>
-  <circle cx="{center+8}" cy="{center-5}" r="3" fill="#000"/>
-  <!-- 鼻子 -->
-  <polygon points="{center},{center+2} {center-2},{center+6} {center+2},{center+6}" fill="#FFB6C1"/>
-  <!-- 嘴巴 -->
-  <path d="M {center} {center+6} Q {center-6} {center+12}, {center-12} {center+8}" stroke="#8B4513" stroke-width="1" fill="none"/>
-  <path d="M {center} {center+6} Q {center+6} {center+12}, {center+12} {center+8}" stroke="#8B4513" stroke-width="1" fill="none"/>
+  <defs>
+    <filter id="soft-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
+      <feOffset in="blur" dx="2" dy="3" result="offsetBlur"/>
+      <feFlood flood-color="{shadow_color}" flood-opacity="0.3" result="offsetColor"/>
+      <feComposite in="offsetColor" in2="offsetBlur" operator="in" result="offsetBlur"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+     <radialGradient id="bodyGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" style="stop-color:white; stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:{body_color}; stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <g filter="url(#soft-shadow)">
+    <!-- 身体: 肥嘟嘟的椭圆 -->
+    <ellipse cx="{center}" cy="{center + 20}" rx="{size // 3}" ry="{size // 4}" fill="url(#bodyGradient)" />
+    
+    <!-- 头部: 更圆，稍微前倾 -->
+    <circle cx="{center}" cy="{center - 10}" r="{size // 3.5}" fill="{body_color}" />
+    <circle cx="{center}" cy="{center - 10}" r="{size // 3.5}" fill="url(#bodyGradient)" />
+    
+    <!-- 耳朵 -->
+    <path d="M {center - 50} {center - 50} Q {center - 60} {center - 80}, {center - 20} {center - 70}" fill="{body_color}" stroke="{line_color}" stroke-width="{line_width}" stroke-linecap="round"/>
+    <path d="M {center + 50} {center - 50} Q {center + 60} {center - 80}, {center + 20} {center - 70}" fill="{body_color}" stroke="{line_color}" stroke-width="{line_width}" stroke-linecap="round"/>
+
+    <!-- 闭着的眼睛，幸福的表情 -->
+    <path d="M {center - 30} {center - 15} Q {center - 20} {center - 5}, {center - 10} {center - 15}" stroke="{line_color}" stroke-width="{line_width}" fill="none" stroke-linecap="round"/>
+    <path d="M {center + 10} {center - 15} Q {center + 20} {center - 5}, {center + 30} {center - 15}" stroke="{line_color}" stroke-width="{line_width}" fill="none" stroke-linecap="round"/>
+
+    <!-- 小鼻子和嘴巴 -->
+    <path d="M {center - 3} {center + 5} L {center + 3} {center + 5} L {center} {center + 10} Z" fill="{palette.get('primary_accent', '#FFB6C1')}"/>
+    
+    <!-- 爪子/手 -->
+    <circle cx="{center - 45}" cy="{center + 30}" r="15" fill="{body_color}"/>
+    <circle cx="{center + 45}" cy="{center + 30}" r="15" fill="{body_color}"/>
+   </g>
 </svg>'''
+    return svg_content
+
+def create_cat_demo(output_path, size, style_profile):
+    """创建猫咪演示素材"""
+    svg_content = create_kawaii_cat_svg(size, style_profile)
     return create_simple_svg_png(svg_content, output_path, size)
 
 def create_coffee_cup_demo(output_path, size):
@@ -288,16 +346,46 @@ const orangeCatPath = resourceManager.getAssetPath('cats', 'orange_cat');
 
 def main():
     """主函数"""
-    print("=== 演示素材生成脚本 ===")
-    print("正在生成可用的演示素材...")
+    print("=== 可爱风格预览生成脚本 (V1) ===")
     
-    demo_assets = generate_demo_assets()
-    create_demo_report(demo_assets)
+    # --- 切换工作目录 ---
+    script_dir = Path(__file__).parent
+    os.chdir(script_dir)
+    print(f"工作目录切换至: {os.getcwd()}")
     
-    print(f"\n=== 演示素材生成完成 ===")
-    print(f"✅ 成功生成 {len(demo_assets)} 个演示文件")
-    print("📋 查看 DEMO_ASSETS_REPORT.md 了解详情")
-    print("\n🔧 提示: 如需PNG格式，请安装 ImageMagick 或 Inkscape")
+    # --- 加载配置 ---
+    config = load_config()
+    if not config:
+        return
+        
+    active_style_name = config.get('globalStyle')
+    style_profile = config.get('styleProfile', {}).get(active_style_name)
+    if not style_profile:
+        print(f"错误: 未在 config.json 中找到名为 '{active_style_name}' 的 styleProfile。")
+        return
+    
+    print(f"应用风格: {style_profile.get('name', active_style_name)}")
+    
+    # --- 生成单张猫咪预览图 ---
+    print("\n[1/1] 正在生成猫咪预览图...")
+    
+    cat_name = "cat_preview"
+    size = 256
+    version = 1
+    
+    output_dir = "Characters/Cats/PREVIEW"
+    ensure_dir(output_dir)
+    output_path = f"{output_dir}/{cat_name}_v{version}.png"
+    
+    success = create_cat_demo(output_path, size, style_profile)
+    
+    if success:
+        print(f"\n✅ 预览图生成成功!")
+        print(f"文件位置: {Path(output_path).resolve()}")
+    else:
+        print(f"\n⚠️  预览图生成失败。")
+        print(f"可能是因为系统缺少 ImageMagick 或 Inkscape。")
+        print(f"已在以下位置保留SVG源文件: {Path(output_path.replace('.png', '_demo.svg')).resolve()}")
 
 if __name__ == "__main__":
     main()

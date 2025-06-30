@@ -4,3 +4,4 @@ server_global/node_modules/
 server_wechat/node_modules/
 admin_backend/node_modules/
 **/node_modules/
+.venv/
