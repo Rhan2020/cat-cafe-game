@@ -181,6 +181,40 @@ const GameConfig = require('../server_global/models/GameConfig');
       { upsert: true }
     );
 
+    // Contract Templates
+    const contractTemplates = [
+      {
+        id: 'loyal_dog',
+        name: '忠犬男友契约',
+        species: 'dog',
+        breedId: 'dog_001',
+        defaultName: '小忠',
+        baseAttributes: { speed: 3, luck: 2, cooking: 1, charm: 5, stamina: 6 }
+      },
+      {
+        id: 'sweet_hamster',
+        name: '甜心闺蜜契约',
+        species: 'hamster',
+        breedId: 'hamster_001',
+        defaultName: '甜甜',
+        baseAttributes: { speed: 2, luck: 4, cooking: 5, charm: 4, stamina: 3 }
+      }
+    ];
+
+    await GameConfig.findOneAndUpdate(
+      { configType: 'contract_templates' },
+      {
+        configType: 'contract_templates',
+        version: '1.0.0',
+        data: contractTemplates,
+        description: '好友契约模板',
+        createdBy: adminId,
+        updatedBy: adminId,
+        isActive: true
+      },
+      { upsert: true }
+    );
+
     console.log('GameConfig seeding completed');
     console.log('Special visitor & bubble configs seeded');
     await mongoose.disconnect();
