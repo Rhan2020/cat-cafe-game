@@ -1,7 +1,7 @@
 const cloud = require('wx-server-sdk');
 
 cloud.init({
-    env: cloud.DYNAMIC_CURRENT_ENV
+  env: cloud.DYNAMIC_CURRENT_ENV
 });
 
 const db = cloud.database();
@@ -18,38 +18,80 @@ exports.main = async (event, context) => {
         };
     }
 
-    const { gold } = event;
-
-    // --- Validation ---
-    if (typeof gold !== 'number' || gold < 0 || !isFinite(gold)) {
-        return {
-            code: 400,
-            message: 'Invalid gold amount. Must be a non-negative number.',
-        };
-    }
-
+    // 获取客户端传来的数据（仅用于参考，不直接使用）
+    const { gold: clientGold } = event;
+    
     try {
-        const result = await db.collection('users').where({
-            _openid: openid
-        }).update({
+        // 1. 获取用户当前数据
+        const userResult = await db.collection('users').doc(openid).get();
+        if (!userResult.data) {
+            return { code: 404, message: 'User not found.' };
+        }
+        
+        const user = userResult.data;
+        const now = new Date();
+        const lastUpdateTime = user.last_update_time ? new Date(user.last_update_time) : user.last_login_time;
+        const secondsSinceLastUpdate = Math.floor((now.getTime() - lastUpdateTime.getTime()) / 1000);
+        
+        // 2. 服务端重新计算实际收益
+        const { TIME, EARNINGS } = require('../../constants/gameConstants');
+        let serverCalculatedGold = 0;
+        
+        if (secondsSinceLastUpdate > 0 && secondsSinceLastUpdate <= TIME.MAX_UPDATE_INTERVAL_SECONDS) {
+            // 获取工作中的动物和配置 - 优化查询，只获取需要的配置
+            const [animalsResult, breedConfigResult] = await Promise.all([
+                db.collection('animals').where({ _openid: openid, status: 'working' }).get(),
+                db.collection('game_configs').doc('animal_breeds').get()
+            ]);
+            
+            const workingAnimals = animalsResult.data || [];
+            const breedConfigs = breedConfigResult.data && breedConfigResult.data.data ? breedConfigResult.data.data : [];
+            
+            if (workingAnimals.length > 0 && breedConfigs.length > 0) {
+                const breedMap = new Map(breedConfigs.map(b => [b.breedId, b]));
+                let totalSpeed = 0;
+                
+                for (const animal of workingAnimals) {
+                    const breed = breedMap.get(animal.breedId);
+                    if (breed && breed.baseAttributes && typeof breed.baseAttributes.speed === 'number') {
+                        totalSpeed += Math.max(0, breed.baseAttributes.speed);
+                    }
+                }
+                
+                // 限制最大收益速度
+                const cappedSpeed = Math.min(totalSpeed, EARNINGS.MAX_SPEED_PER_SECOND);
+                serverCalculatedGold = Math.floor(cappedSpeed * secondsSinceLastUpdate);
+            }
+        }
+        
+        // 3. 验证客户端数据的合理性
+        const expectedGold = user.gold + serverCalculatedGold;
+        const goldDifference = Math.abs((clientGold || 0) - expectedGold);
+        const TOLERANCE = Math.max(EARNINGS.MIN_GOLD_TOLERANCE, expectedGold * EARNINGS.GOLD_TOLERANCE_PERCENT);
+        
+        if (clientGold && goldDifference > TOLERANCE) {
+            console.warn(`Gold mismatch for user ${openid}: client=${clientGold}, expected=${expectedGold}, using server value`);
+        }
+        
+        // 4. 使用服务端计算的值更新数据库
+        const result = await db.collection('users').doc(openid).update({
             data: {
-                gold: _.set(Math.floor(gold)), // Use _.set for targeted update and floor to ensure integer
-                last_update_time: new Date()
+                gold: _.inc(serverCalculatedGold),
+                last_update_time: now
             }
         });
 
-        if (result.stats.updated === 0) {
-            return {
-                code: 404,
-                message: 'User not found.',
-            };
-        }
+        // 5. 获取更新后的用户数据以确保返回准确的金币数量
+        const updatedUserResult = await db.collection('users').doc(openid).get();
+        const actualNewGold = updatedUserResult.data ? updatedUserResult.data.gold : user.gold + serverCalculatedGold;
 
         return {
             code: 200,
             message: 'User data updated successfully.',
             data: {
-                updated: result.stats.updated
+                updated: result.stats.updated,
+                goldEarned: serverCalculatedGold,
+                newGold: actualNewGold
             }
         };
 
@@ -57,8 +99,7 @@ exports.main = async (event, context) => {
         console.error('Error updating user data:', err);
         return {
             code: 500,
-            message: 'Internal server error.',
-            error: err
+            message: 'Internal server error.'
         };
     }
 }; 

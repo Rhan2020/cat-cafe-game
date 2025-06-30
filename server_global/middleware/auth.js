@@ -1,142 +1,78 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { logger } = require('./logging');
 
-// JWT 认证中间件
-const protect = async (req, res, next) => {
-  let token;
+// JWT token验证中间件
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
-  // 检查请求头中的 token
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-  }
-
-  // 确保 token 存在
   if (!token) {
-    return res.status(401).json({
-      code: 401,
-      message: 'No token provided, authorization denied'
+    return res.status(401).json({ 
+      message: '访问被拒绝：缺少身份验证令牌' 
     });
   }
 
-  try {
-    // 验证 token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
-    
-    // 获取用户信息
-    const user = await User.findById(decoded.id);
-    
-    if (!user) {
-      return res.status(401).json({
-        code: 401,
-        message: 'User not found, token invalid'
+  jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret', (err, decoded) => {
+    if (err) {
+      logger.warn('无效的JWT令牌', { 
+        error: err.message,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+      return res.status(403).json({ 
+        message: '访问被拒绝：无效的身份验证令牌' 
       });
     }
 
-    if (!user.isActive) {
-      return res.status(401).json({
-        code: 401,
-        message: 'Account is deactivated'
-      });
-    }
+    // 将用户信息附加到请求对象
+    req.user = {
+      id: decoded.userId,
+      username: decoded.username,
+      role: decoded.role || 'user'
+    };
 
-    if (user.isBanned) {
-      return res.status(403).json({
-        code: 403,
-        message: 'Account is banned',
-        reason: user.banReason
-      });
-    }
-
-    // 将用户信息添加到请求对象
-    req.user = user;
     next();
-  } catch (error) {
-    console.error('Auth middleware error:', error);
-    
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({
-        code: 401,
-        message: 'Invalid token'
-      });
-    } else if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        code: 401,
-        message: 'Token expired'
-      });
-    }
-    
-    return res.status(500).json({
-      code: 500,
-      message: 'Authentication error'
-    });
-  }
+  });
 };
 
-// 生成 JWT Token
-const generateToken = (userId) => {
-  return jwt.sign(
-    { id: userId },
-    process.env.JWT_SECRET || 'default_secret',
-    { expiresIn: process.env.JWT_EXPIRE || '7d' }
-  );
-};
-
-// 管理员权限检查中间件
-const adminOnly = async (req, res, next) => {
-  try {
-    // 检查用户是否有管理员权限
-    // 这里可以根据实际需求实现管理员验证逻辑
-    if (!req.user.isAdmin) {
-      return res.status(403).json({
-        code: 403,
-        message: 'Admin access required'
-      });
-    }
-    
-    next();
-  } catch (error) {
-    console.error('Admin middleware error:', error);
-    return res.status(500).json({
-      code: 500,
-      message: 'Authorization error'
-    });
-  }
-};
-
-// 速率限制中间件
-const rateLimit = (windowMs = 15 * 60 * 1000, max = 100) => {
-  const requests = new Map();
-  
+// 角色权限验证中间件
+const requireRole = (roles) => {
   return (req, res, next) => {
-    const ip = req.ip || req.connection.remoteAddress;
-    const now = Date.now();
-    const windowStart = now - windowMs;
-    
-    // 清理过期的请求记录
-    if (requests.has(ip)) {
-      const userRequests = requests.get(ip).filter(time => time > windowStart);
-      requests.set(ip, userRequests);
-    }
-    
-    const userRequests = requests.get(ip) || [];
-    
-    if (userRequests.length >= max) {
-      return res.status(429).json({
-        code: 429,
-        message: 'Too many requests, please try again later'
+    if (!req.user) {
+      return res.status(401).json({ 
+        message: '访问被拒绝：用户未认证' 
       });
     }
-    
-    userRequests.push(now);
-    requests.set(ip, userRequests);
-    
+
+    const userRole = req.user.role;
+    const allowedRoles = Array.isArray(roles) ? roles : [roles];
+
+    if (!allowedRoles.includes(userRole)) {
+      logger.warn('用户权限不足', {
+        userId: req.user.id,
+        userRole: userRole,
+        requiredRoles: allowedRoles,
+        ip: req.ip
+      });
+      
+      return res.status(403).json({ 
+        message: '访问被拒绝：权限不足' 
+      });
+    }
+
     next();
   };
 };
 
+// 管理员权限验证
+const requireAdmin = requireRole(['admin', 'super_admin']);
+
+// 编辑权限验证（管理员或编辑者）
+const requireEditor = requireRole(['admin', 'super_admin', 'editor']);
+
 module.exports = {
-  protect,
-  generateToken,
-  adminOnly,
-  rateLimit
+  authenticateToken,
+  requireRole,
+  requireAdmin,
+  requireEditor
 };

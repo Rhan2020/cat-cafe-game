@@ -1,27 +1,32 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
-const helmet = require('helmet');
-const compression = require('compression');
+const path = require('path');
 require('dotenv').config();
+
+// 导入中间件
+const errorHandler = require('./middleware/errorHandler');
+const { httpLogger } = require('./middleware/logging');
+const { generalLimiter, helmetConfig, corsOptions } = require('./middleware/security');
 
 const app = express();
 const port = process.env.PORT || 8080;
 
-// Security middleware
-app.use(helmet());
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
-  credentials: true
-}));
-app.use(compression());
+// 信任代理（用于获取真实IP）
+app.set('trust proxy', 1);
 
-// Body parsing middleware
+// 安全中间件
+app.use(helmetConfig);
+app.use(require('cors')(corsOptions));
+
+// 通用限流
+app.use(generalLimiter);
+
+// 日志中间件
+app.use(httpLogger);
+
+// 基础中间件
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Trust proxy for rate limiting
-app.set('trust proxy', 1);
 
 // Database Connection
 const dbURI = process.env.MONGODB_URI;
@@ -30,97 +35,61 @@ if (!dbURI) {
   process.exit(1);
 }
 
-mongoose.connect(dbURI, { 
-  useNewUrlParser: true, 
-  useUnifiedTopology: true 
-})
+mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected successfully.'))
   .catch(err => {
     console.error('MongoDB connection error:', err);
     process.exit(1);
   });
 
-// Health check route
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '1.0.0'
-  });
-});
-
 // Basic Route
 app.get('/', (req, res) => {
+  res.send('Global Server is running!');
+});
+
+// 健康检查端点
+app.get('/health', (req, res) => {
   res.status(200).json({
-    message: 'Cat Cafe Global Server is running!',
-    version: '1.0.0',
-    docs: '/api-docs'
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// API Routes
+// API路由
 const userRoutes = require('./routes/userRoutes');
-const animalRoutes = require('./routes/animalRoutes');
-const gameRoutes = require('./routes/gameRoutes');
+const assetRoutes = require('./routes/assetRoutes');
 
 app.use('/api/users', userRoutes);
-app.use('/api/animals', animalRoutes);
-app.use('/api/game', gameRoutes);
+app.use('/api/assets', assetRoutes);
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error('Global error handler:', err);
-  
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const errors = Object.values(err.errors).map(e => e.message);
-    return res.status(400).json({
-      code: 400,
-      message: 'Validation Error',
-      errors
-    });
-  }
-  
-  // Mongoose duplicate key error
-  if (err.code === 11000) {
-    return res.status(400).json({
-      code: 400,
-      message: 'Duplicate field value entered'
-    });
-  }
-  
-  // Default error
-  res.status(500).json({
-    code: 500,
-    message: 'Internal Server Error',
-    error: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
-  });
-});
+// 静态文件服务（素材文件）
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Handle 404 routes
-app.use((req, res) => {
+// 404处理
+app.use('*', (req, res) => {
   res.status(404).json({
     code: 404,
-    message: 'Route not found'
+    message: '接口不存在',
+    path: req.originalUrl
   });
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  mongoose.connection.close();
-  process.exit(0);
-});
+// 错误处理中间件（必须放在最后）
+app.use(errorHandler);
 
-process.on('SIGINT', () => {
-  console.log('SIGINT signal received: closing HTTP server');
-  mongoose.connection.close();
-  process.exit(0);
-});
+// 创建logs目录
+const fs = require('fs');
+const logsDir = path.join(__dirname, 'logs');
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
 
 app.listen(port, () => {
-  console.log(`Global server is listening on port ${port}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`全球服务器正在端口 ${port} 上运行`);
+  console.log(`环境: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`健康检查: http://localhost:${port}/health`);
 });
 
-module.exports = app; // For testing purposes
+module.exports = app;

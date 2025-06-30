@@ -45,10 +45,15 @@ export class MainSceneManager extends Component {
         }
 
         if (this._totalSpeedPerSecond > 0) {
-            this._goldBuffer += this._totalSpeedPerSecond * dt;
+            // 限制最大收益速度，防止客户端篡改
+            const MAX_SPEED_PER_SECOND = 100; // 每秒最多100金币
+            const cappedSpeed = Math.min(this._totalSpeedPerSecond, MAX_SPEED_PER_SECOND);
+            
+            this._goldBuffer += cappedSpeed * dt;
             const earnedGold = Math.floor(this._goldBuffer);
             
             if (earnedGold > 0) {
+                // 只在客户端显示，真正的金币数量由服务端验证
                 GameManager.Instance.currentUser.gold += earnedGold;
                 this._goldBuffer -= earnedGold;
                 this.updateUserInfoUI();
@@ -161,7 +166,7 @@ export class MainSceneManager extends Component {
         try {
             const response = await NetworkManager.Instance.callCloudFunction('assign_animal_to_post', {
                 animalId: animalId,
-                post: postName,
+                postId: postName, // 修复参数名不匹配的问题
             });
 
             if (response && response.code === 200) {

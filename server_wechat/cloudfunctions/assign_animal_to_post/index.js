@@ -21,8 +21,20 @@ exports.main = async (event, context) => {
 
   const { animalId, postId } = event;
 
+  // 输入验证
   if (!animalId || !postId) {
     return { code: 400, message: 'animalId and postId are required.' };
+  }
+  
+  // 验证postId格式
+  if (typeof postId !== 'string' || postId.length > 50) {
+    return { code: 400, message: 'Invalid postId format.' };
+  }
+  
+  // 验证岗位是否有效
+  const { ANIMAL, ERROR_CODES } = require('../../constants/gameConstants');
+  if (!ANIMAL.VALID_POSTS.includes(postId)) {
+    return { code: ERROR_CODES.BAD_REQUEST, message: 'Invalid post. Allowed posts: ' + ANIMAL.VALID_POSTS.join(', ') };
   }
 
   try {
@@ -37,7 +49,7 @@ exports.main = async (event, context) => {
       }).update({
         data: {
           status: 'idle',
-          postId: '',
+          postId: null, // 使用null而不是空字符串表示未分配
         }
       });
       

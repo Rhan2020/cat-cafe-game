@@ -2,6 +2,8 @@ import React from 'react';
 import { CloudProvider } from './services/CloudProvider';
 import { UserTable } from './components/UserTable';
 import { ConfigEditor } from './components/ConfigEditor';
+import { AssetManager } from './components/AssetManager';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Tabs, Layout } from 'antd';
 import 'antd/dist/reset.css'; // Import Antd styles
 
@@ -18,20 +20,27 @@ const items = [
     label: `游戏配置编辑`,
     children: <ConfigEditor />,
   },
+  {
+    key: '3',
+    label: `素材管理`,
+    children: <AssetManager />,
+  },
 ];
 
 function App() {
   return (
-    <CloudProvider>
-      <Layout style={{ minHeight: '100vh' }}>
-        <Header style={{ color: 'white', fontSize: '20px' }}>
-          猫咪咖啡馆 - 管理后台
-        </Header>
-        <Content style={{ padding: '20px' }}>
-          <Tabs defaultActiveKey="1" items={items} />
-        </Content>
-      </Layout>
-    </CloudProvider>
+    <ErrorBoundary>
+      <CloudProvider>
+        <Layout style={{ minHeight: '100vh' }}>
+          <Header style={{ color: 'white', fontSize: '20px' }}>
+            猫咪咖啡馆 - 管理后台
+          </Header>
+          <Content style={{ padding: '20px' }}>
+            <Tabs defaultActiveKey="1" items={items} />
+          </Content>
+        </Layout>
+      </CloudProvider>
+    </ErrorBoundary>
   );
 }
 

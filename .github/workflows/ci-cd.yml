@@ -1,0 +1,254 @@
+name: 猫咪咖啡馆 CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # 代码质量检查
+  lint-and-format:
+    name: 代码规范检查
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 安装依赖
+        run: |
+          cd server_global && npm ci
+          cd ../server_wechat && npm ci
+          cd ../admin_backend && npm ci
+
+      - name: ESLint 检查
+        run: |
+          cd server_global && npm run lint || true
+          cd ../admin_backend && npm run lint || true
+
+      - name: 代码格式检查
+        run: |
+          cd server_global && npm run format:check || true
+          cd ../admin_backend && npm run format:check || true
+
+  # 安全扫描
+  security-scan:
+    name: 安全漏洞扫描
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安全审计
+        run: |
+          cd server_global && npm audit --audit-level moderate
+          cd ../server_wechat && npm audit --audit-level moderate
+          cd ../admin_backend && npm audit --audit-level moderate
+
+  # 单元测试
+  unit-tests:
+    name: 单元测试
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 安装依赖
+        run: |
+          cd server_global && npm ci
+          cd ../server_wechat && npm ci
+
+      - name: 运行微信云函数测试
+        run: |
+          cd server_wechat && npm test
+
+      - name: 运行全球服务器测试
+        env:
+          MONGODB_URI: mongodb://localhost:27017/test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          NODE_ENV: test
+        run: |
+          cd server_global && npm test
+
+      - name: 生成测试报告
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # 构建验证
+  build-check:
+    name: 构建验证
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 构建管理后台
+        run: |
+          cd admin_backend
+          npm ci
+          npm run build
+
+      - name: 验证构建文件
+        run: |
+          cd admin_backend
+          test -d build
+          test -f build/index.html
+
+  # Docker 镜像构建
+  docker-build:
+    name: Docker镜像构建
+    runs-on: ubuntu-latest
+    needs: [lint-and-format, unit-tests, build-check]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 登录到 Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 构建全球服务器镜像
+        uses: docker/build-push-action@v5
+        with:
+          context: ./server_global
+          push: true
+          tags: |
+            catcafe/global-server:latest
+            catcafe/global-server:${{ github.sha }}
+
+      - name: 构建管理后台镜像
+        uses: docker/build-push-action@v5
+        with:
+          context: ./admin_backend
+          push: true
+          tags: |
+            catcafe/admin-backend:latest
+            catcafe/admin-backend:${{ github.sha }}
+
+  # 部署到测试环境
+  deploy-staging:
+    name: 部署到测试环境
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+
+    steps:
+      - name: 部署到测试服务器
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd /opt/catcafe
+            docker-compose pull
+            docker-compose up -d
+            docker system prune -f
+
+  # 部署到生产环境
+  deploy-production:
+    name: 部署到生产环境
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - name: 部署到生产服务器
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /opt/catcafe
+            # 备份当前版本
+            docker tag catcafe/global-server:latest catcafe/global-server:backup
+            
+            # 更新到最新版本
+            docker pull catcafe/global-server:latest
+            docker pull catcafe/admin-backend:latest
+            
+            # 滚动更新
+            docker-compose up -d --no-deps global-server
+            docker-compose up -d --no-deps admin-backend
+            
+            # 健康检查
+            sleep 30
+            curl -f http://localhost:8080/health || exit 1
+            
+            # 清理旧镜像
+            docker system prune -f
+
+  # 通知
+  notify:
+    name: 部署通知
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: always()
+
+    steps:
+      - name: 企业微信通知
+        if: success()
+        run: |
+          curl -X POST "${{ secrets.WECHAT_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "msgtype": "text",
+              "text": {
+                "content": "🎉 猫咪咖啡馆生产环境部署成功！\n提交: ${{ github.sha }}\n分支: ${{ github.ref }}\n时间: $(date)"
+              }
+            }'
+
+      - name: 失败通知
+        if: failure()
+        run: |
+          curl -X POST "${{ secrets.WECHAT_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "msgtype": "text",
+              "text": {
+                "content": "❌ 猫咪咖啡馆部署失败！\n提交: ${{ github.sha }}\n分支: ${{ github.ref }}\n请立即检查！"
+              }
+            }'

@@ -1,25 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { protect, rateLimit } = require('../middleware/auth');
-const {
-  login,
-  getProfile,
-  updateSettings,
-  updateNickname,
-  getTransactions,
-  deleteAccount
-} = require('../controllers/userController');
+const { login } = require('../controllers/userController');
+const { validateLogin } = require('../middleware/validation');
+const { authLimiter } = require('../middleware/security');
 
-// 公开路由
-router.post('/login', rateLimit(15 * 60 * 1000, 10), login);
-
-// 需要认证的路由
-router.use(protect);
-
-router.get('/profile', getProfile);
-router.put('/settings', updateSettings);
-router.put('/nickname', updateNickname);
-router.get('/transactions', getTransactions);
-router.delete('/account', deleteAccount);
+// @route   POST /api/users/login
+// @desc    用户登录或注册
+// @access  Public
+router.post('/login', authLimiter, validateLogin, login);
 
 module.exports = router;

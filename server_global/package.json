@@ -10,8 +10,12 @@
     "test:watch": "jest --watch",
     "test:unit": "jest --testPathPattern=__tests__/unit",
     "test:integration": "jest --testPathPattern=__tests__/integration",
-    "lint": "eslint . --ext .js",
-    "lint:fix": "eslint . --ext .js --fix"
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "docker:build": "docker build -t catcafe/global-server .",
+    "docker:run": "docker run -p 8080:8080 catcafe/global-server"
   },
   "keywords": [
     "game",
@@ -28,25 +32,30 @@
     "node": ">=16.0.0"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "mongoose": "^7.5.0",
+    "express": "^5.1.0",
+    "mongoose": "^8.16.1",
     "jsonwebtoken": "^9.0.2",
     "bcryptjs": "^2.4.3",
-    "dotenv": "^16.3.1",
+    "dotenv": "^17.0.0",
     "cors": "^2.8.5",
-    "helmet": "^7.0.0",
+    "helmet": "^7.1.0",
     "compression": "^1.7.4",
-    "express-rate-limit": "^6.10.0",
+    "express-rate-limit": "^7.1.5",
     "express-validator": "^7.0.1",
-    "winston": "^3.10.0",
-    "redis": "^4.6.8"
+    "winston": "^3.11.0",
+    "redis": "^4.6.10",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.33.2",
+    "mime-types": "^2.1.35"
   },
   "devDependencies": {
-    "jest": "^29.6.2",
-    "supertest": "^6.3.3",
-    "nodemon": "^3.0.1",
-    "eslint": "^8.47.0",
-    "mongodb-memory-server": "^8.15.1"
+    "jest": "^30.0.3",
+    "supertest": "^7.1.1",
+    "nodemon": "^3.0.2",
+    "eslint": "^8.56.0",
+    "mongodb-memory-server": "^10.1.4",
+    "prettier": "^3.1.1",
+    "@eslint/js": "^8.56.0"
   },
   "jest": {
     "testEnvironment": "node",
