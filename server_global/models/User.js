@@ -12,6 +12,10 @@ const UserSchema = new Schema({
   nickname: { type: String, required: true },
   avatarUrl: { type: String, default: '' },
   
+  // 离线相关
+  lastActiveAt: { type: Date, default: Date.now }, // 上次活跃时间
+  offlineEarnings: { type: Number, default: 0 },   // 累积离线收益（金币），待玩家领取
+  
   // 游戏货币
   gold: { type: Number, default: 1000 },
   gems: { type: Number, default: 100 },
@@ -90,6 +94,7 @@ const UserSchema = new Schema({
 UserSchema.index({ authProviderId: 1, authProvider: 1 });
 UserSchema.index({ createdAt: -1 });
 UserSchema.index({ lastLoginAt: -1 });
+UserSchema.index({ lastActiveAt: -1 });
 
 const User = mongoose.model('User', UserSchema);
 

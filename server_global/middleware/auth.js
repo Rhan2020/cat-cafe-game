@@ -32,7 +32,9 @@ const authenticateToken = (req, res, next) => {
       role: decoded.role || 'user'
     };
 
-    next();
+    // 离线收益跟踪
+    const offlineTracker = require('./offlineTracker');
+    offlineTracker(req, res, next);
   });
 };
 

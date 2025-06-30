@@ -64,12 +64,14 @@ const assetRoutes = require('./routes/assetRoutes');
 const gameRoutes = require('./routes/gameRoutes');
 const visitorRoutes = require('./routes/visitorRoutes');
 const contractRoutes = require('./routes/contractRoutes');
+const rankingRoutes = require('./routes/rankingRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/game', gameRoutes);
 app.use('/api/visitor', visitorRoutes);
 app.use('/api/contract', contractRoutes);
+app.use('/api/rankings', rankingRoutes);
 
 // 静态文件服务（素材文件）
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

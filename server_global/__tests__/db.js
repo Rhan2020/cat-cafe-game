@@ -25,3 +25,9 @@ module.exports.clearDatabase = async () => {
     await collection.deleteMany();
   }
 };
+
+// Jest 需要至少一个测试用例，否则会抛出错误。
+// 这里添加一个占位测试，以便该文件继续作为测试工具模块存在。
+test('db util placeholder', () => {
+  expect(true).toBe(true);
+});

@@ -10,6 +10,10 @@ const {
   completeFishing,
   getRandomBubble
 } = require('../controllers/gameController');
+const {
+  previewOfflineEarnings,
+  claimOfflineEarnings
+} = require('../controllers/offlineController');
 
 // 公开路由
 router.get('/configs', getGameConfigs);
@@ -30,5 +34,9 @@ router.post('/delivery/start', startDelivery);
 // 后院钓鱼系统
 router.post('/fishing/start', rateLimit(60 * 1000, 10), startFishing);
 router.post('/fishing/complete', completeFishing);
+
+// 离线收益
+router.get('/offline/preview', previewOfflineEarnings);
+router.post('/offline/claim', claimOfflineEarnings);
 
 module.exports = router;
