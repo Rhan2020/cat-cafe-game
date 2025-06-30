@@ -5,10 +5,10 @@ const { createInvite, acceptInvite } = require('../controllers/contractControlle
 
 router.use(protect);
 
-// 创建契约邀请（速率限制）
+// res.t('auto.e5889be5')（res.t('auto.e9809fe7')）
 router.post('/create', rateLimit(60 * 60 * 1000, 5), createInvite);
 
-// 接受邀请（无需限制）
+// res.t('auto.e68ea5e5')（res.t('auto.e697a0e9')）
 router.post('/accept', acceptInvite);
 
 module.exports = router;

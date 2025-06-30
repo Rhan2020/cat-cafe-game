@@ -12,23 +12,23 @@ const {
 } = require('../controllers/gameController');
 const verifyHmac = require('../middleware/hmacVerify');
 
-// 公开路由
+// res.t('auto.e585ace5')
 router.get('/configs', getGameConfigs);
 router.get('/bubbles/random', getRandomBubble);
 
-// 需要认证的路由
+// res.t('auto.e99c80e8')
 router.use(protect);
 
-// 抽卡系统 - 添加速率限制防止刷单
+// res.t('auto.e68abde5') - res.t('auto.e6b7bbe5')
 router.post('/recruit', verifyHmac, rateLimit(60 * 1000, 20), recruitAnimal);
 
-// 转盘系统 - 每日限制
+// res.t('auto.e8bdace7') - res.t('auto.e6af8fe6')
 router.post('/wheel/spin', verifyHmac, rateLimit(60 * 1000, 10), spinWheel);
 
-// 外卖系统
+// res.t('auto.e5a496e5')
 router.post('/delivery/start', verifyHmac, startDelivery);
 
-// 后院钓鱼系统
+// res.t('auto.e5908ee9')
 router.post('/fishing/start', verifyHmac, rateLimit(60 * 1000, 10), startFishing);
 router.post('/fishing/complete', verifyHmac, completeFishing);
 

@@ -5,10 +5,10 @@ const { getPendingVisitor, chooseVisitorOption } = require('../controllers/visit
 
 router.use(protect);
 
-// 获取待处理访客
+// res.t('auto.e88eb7e5')
 router.get('/pending', getPendingVisitor);
 
-// 处理访客选择
+// res.t('auto.e5a484e7')
 router.post('/choose', chooseVisitorOption);
 
 module.exports = router;
