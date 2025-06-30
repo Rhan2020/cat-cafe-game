@@ -68,6 +68,7 @@ const visitorRoutes = require('./routes/visitorRoutes');
 const contractRoutes = require('./routes/contractRoutes');
 const rankingRoutes = require('./routes/rankingRoutes');
 const facilityRoutes = require('./routes/facilityRoutes');
+const animalRoutes = require('./routes/animalRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/assets', assetRoutes);
@@ -76,6 +77,7 @@ app.use('/api/visitor', visitorRoutes);
 app.use('/api/contract', contractRoutes);
 app.use('/api/rankings', rankingRoutes);
 app.use('/api/facilities', facilityRoutes);
+app.use('/api/animals', animalRoutes);
 
 // 兼容旧测试：将 /login 代理到新路径
 app.post('/login', (req, res, next) => {

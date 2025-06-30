@@ -53,7 +53,7 @@ GameConfigSchema.index({ effectiveFrom: 1, effectiveTo: 1 });
 GameConfigSchema.statics.getActiveConfig = async function(configType) {
   const cacheKey = `gameConfig:${configType}`;
   const cached = await getCache(cacheKey);
-  if (cached) return JSON.parse(cached);
+  if (cached) return typeof cached === 'string' ? JSON.parse(cached) : cached;
 
   const now = new Date();
   const doc = await this.findOne({
