@@ -18,9 +18,7 @@ const createRateLimiter = (windowMs, max, message) => {
 };
 
 // 登录API严格限流
-const authLimiter = process.env.NODE_ENV === 'test'
-  ? (req, res, next) => next()
-  : createRateLimiter(15 * 60 * 1000, 5, '登录尝试过于频繁，请15分钟后再试');
+const authLimiter = createRateLimiter(15 * 60 * 1000, 5, '登录尝试过于频繁，请15分钟后再试');
 
 // CORS配置
 const corsOptions = process.env.NODE_ENV === 'test' ? { origin: '*'} : {

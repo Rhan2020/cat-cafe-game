@@ -16,8 +16,8 @@ const port = process.env.PORT || 8080;
 app.set('trust proxy', 1);
 
 // 安全中间件（测试环境跳过，避免 CORS/helmet 干扰）
+app.use(helmetConfig);
 if (process.env.NODE_ENV !== 'test') {
-  app.use(helmetConfig);
   app.use(require('cors')(corsOptions));
 }
 
