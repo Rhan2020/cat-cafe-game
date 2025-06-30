@@ -30,18 +30,18 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Database Connection
-const dbURI = process.env.MONGODB_URI;
-if (!dbURI) {
-  console.error('Error: MONGODB_URI is not defined in the .env file.');
-  process.exit(1);
-}
+const { connectDB } = require('./utils/connectDB');
 
-mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected successfully.'))
-  .catch(err => {
+// 仅在非测试环境下自动连接数据库（测试环境将由测试套件自行管理连接）
+if (process.env.NODE_ENV !== 'test') {
+  connectDB().catch(err => {
     console.error('MongoDB connection error:', err);
-    process.exit(1);
+    // 生产环境连接失败时终止进程；其余环境抛出错误供外层捕获
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    }
   });
+}
 
 // Basic Route
 app.get('/', (req, res) => {
