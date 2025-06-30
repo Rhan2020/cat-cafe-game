@@ -79,7 +79,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('*', (req, res) => {
   res.status(404).json({
     code: 404,
-    message: 'res.t('auto.e68ea5e5')',
+    message: 'Resource not found',
     path: req.originalUrl
   });
 });
