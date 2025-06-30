@@ -562,14 +562,14 @@ exports.completeFishing = async (req, res) => {
     // res.t('auto.e7949fe6')
     const fishConfigDoc = await GameConfig.getActiveConfig('fish_types');
     const fishConfig = fishConfigDoc?.data || [
-      { itemId: 'fish_common_1', name: 'res.t('auto.e5b08fe9')', rarity: 'common', weight: 50 },
-      { itemId: 'fish_common_2', name: 'res.t('auto.e5b08fe9')', rarity: 'common', weight: 40 },
-      { itemId: 'fish_uncommon_1', name: 'res.t('auto.e88d89e9')', rarity: 'uncommon', weight: 30 },
-      { itemId: 'fish_uncommon_2', name: 'res.t('auto.e9b288e9')', rarity: 'uncommon', weight: 25 },
-      { itemId: 'fish_rare_1', name: 'res.t('auto.e98791e9')', rarity: 'rare', weight: 10 },
-      { itemId: 'fish_rare_2', name: 'res.t('auto.e994a6e9')', rarity: 'rare', weight: 8 },
-      { itemId: 'fish_epic_1', name: 'res.t('auto.e9be99e9')', rarity: 'epic', weight: 3 },
-      { itemId: 'fish_legendary_1', name: 'res.t('auto.e4bca0e8')', rarity: 'legendary', weight: 1 }
+      { itemId: 'fish_common_1', name: 'Small Crucian Carp', rarity: 'common', weight: 50 },
+      { itemId: 'fish_common_2', name: 'Small Carp', rarity: 'common', weight: 40 },
+      { itemId: 'fish_uncommon_1', name: 'Grass Carp', rarity: 'uncommon', weight: 30 },
+      { itemId: 'fish_uncommon_2', name: 'Perch', rarity: 'uncommon', weight: 25 },
+      { itemId: 'fish_rare_1', name: 'Goldfish', rarity: 'rare', weight: 10 },
+      { itemId: 'fish_rare_2', name: 'Koi', rarity: 'rare', weight: 8 },
+      { itemId: 'fish_epic_1', name: 'Arowana', rarity: 'epic', weight: 3 },
+      { itemId: 'fish_legendary_1', name: 'Legendary Fish', rarity: 'legendary', weight: 1 }
     ];
 
     const catches = [];
@@ -597,7 +597,7 @@ exports.completeFishing = async (req, res) => {
     }
 
     if (Math.random() < 0.1 * session.luckBonus) {
-      const bottle = { itemId: 'drift_bottle', name: 'res.t('auto.e7a59ee7')', rarity: 'rare', count: 1 };
+      const bottle = { itemId: 'drift_bottle', name: 'Mysterious Drift Bottle', rarity: 'rare', count: 1 };
       catches.push(bottle);
     }
 
@@ -722,7 +722,7 @@ function getGuaranteedAnimal(animalBreeds, guaranteedRarity) {
 
 function generateAnimalName(breedData) {
   const prefixes = ['小', '大', '萌', '乖', '胖', '瘦', '美', '帅'];
-  const suffixes = ['宝', '仔', '妹', '哥', 'res.t('auto.e585ace4')', 'res.t('auto.e78e8be5')', 'res.t('auto.e5a4a7e4')', '君'];
+  const suffixes = ['宝', '仔', '妹', '哥', '公主', '王子', '大人', '君'];
   
   const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
   const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
