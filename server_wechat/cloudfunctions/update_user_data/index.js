@@ -34,19 +34,18 @@ exports.main = async (event, context) => {
         const secondsSinceLastUpdate = Math.floor((now.getTime() - lastUpdateTime.getTime()) / 1000);
         
         // 2. 服务端重新计算实际收益
+        const { TIME, EARNINGS } = require('../../constants/gameConstants');
         let serverCalculatedGold = 0;
-        const MAX_UPDATE_INTERVAL = 300; // 最大5分钟间隔
         
-        if (secondsSinceLastUpdate > 0 && secondsSinceLastUpdate <= MAX_UPDATE_INTERVAL) {
-            // 获取工作中的动物和配置
-            const [animalsResult, configsResult] = await Promise.all([
+        if (secondsSinceLastUpdate > 0 && secondsSinceLastUpdate <= TIME.MAX_UPDATE_INTERVAL_SECONDS) {
+            // 获取工作中的动物和配置 - 优化查询，只获取需要的配置
+            const [animalsResult, breedConfigResult] = await Promise.all([
                 db.collection('animals').where({ _openid: openid, status: 'working' }).get(),
-                db.collection('game_configs').get()
+                db.collection('game_configs').doc('animal_breeds').get()
             ]);
             
             const workingAnimals = animalsResult.data || [];
-            const breedConfigsDoc = configsResult.data.find(doc => doc._id === 'animal_breeds');
-            const breedConfigs = breedConfigsDoc ? breedConfigsDoc.data : [];
+            const breedConfigs = breedConfigResult.data && breedConfigResult.data.data ? breedConfigResult.data.data : [];
             
             if (workingAnimals.length > 0 && breedConfigs.length > 0) {
                 const breedMap = new Map(breedConfigs.map(b => [b.breedId, b]));
@@ -60,8 +59,7 @@ exports.main = async (event, context) => {
                 }
                 
                 // 限制最大收益速度
-                const MAX_SPEED_PER_SECOND = 100;
-                const cappedSpeed = Math.min(totalSpeed, MAX_SPEED_PER_SECOND);
+                const cappedSpeed = Math.min(totalSpeed, EARNINGS.MAX_SPEED_PER_SECOND);
                 serverCalculatedGold = Math.floor(cappedSpeed * secondsSinceLastUpdate);
             }
         }
@@ -69,7 +67,7 @@ exports.main = async (event, context) => {
         // 3. 验证客户端数据的合理性
         const expectedGold = user.gold + serverCalculatedGold;
         const goldDifference = Math.abs((clientGold || 0) - expectedGold);
-        const TOLERANCE = Math.max(10, expectedGold * 0.01); // 1%容错或最少10金币
+        const TOLERANCE = Math.max(EARNINGS.MIN_GOLD_TOLERANCE, expectedGold * EARNINGS.GOLD_TOLERANCE_PERCENT);
         
         if (clientGold && goldDifference > TOLERANCE) {
             console.warn(`Gold mismatch for user ${openid}: client=${clientGold}, expected=${expectedGold}, using server value`);
@@ -83,13 +81,17 @@ exports.main = async (event, context) => {
             }
         });
 
+        // 5. 获取更新后的用户数据以确保返回准确的金币数量
+        const updatedUserResult = await db.collection('users').doc(openid).get();
+        const actualNewGold = updatedUserResult.data ? updatedUserResult.data.gold : user.gold + serverCalculatedGold;
+
         return {
             code: 200,
             message: 'User data updated successfully.',
             data: {
                 updated: result.stats.updated,
                 goldEarned: serverCalculatedGold,
-                newGold: user.gold + serverCalculatedGold
+                newGold: actualNewGold
             }
         };
 

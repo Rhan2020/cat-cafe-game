@@ -56,7 +56,10 @@ export class AssetManager extends Component {
     onLoad() {
         if (AssetManager._instance) {
             console.warn('[AssetManager] Multiple instances detected');
-            this.destroy();
+            // 销毁重复实例，保持单例模式
+            if (this.node) {
+                this.node.destroy();
+            }
             return;
         }
         

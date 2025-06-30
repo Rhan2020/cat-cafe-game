@@ -37,7 +37,7 @@
 | `level` | Number | 等级 | `5` |
 | `exp` | Number | 当前经验值 | `120` |
 | `status` | String | 当前状态 (working, idle, fishing) | `working` |
-| `assignedPost`| String | 被分配的岗位ID | `post_kitchen` |
+| `postId`| String/Null | 被分配的岗位ID，null表示未分配 | `post_kitchen` / `null` |
 | `skills` | Array | 掌握的技能ID列表 | `["skill_01"]` |
 | `attributes` | Object | 核心属性 | `{"speed": 10, "luck": 5}`|
 

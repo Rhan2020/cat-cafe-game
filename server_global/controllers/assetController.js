@@ -130,8 +130,11 @@ exports.uploadAsset = [
       if (req.file.mimetype.startsWith('image/')) {
         metadata = await getImageMetadata(filePath);
         
-        // 生成缩略图
-        const thumbnailPath = filePath.replace(/(\.[^.]+)$/, '_thumb$1');
+        // 生成缩略图 - 使用path模块安全处理文件路径
+        const thumbnailPath = path.join(
+          path.dirname(filePath),
+          path.basename(filePath, path.extname(filePath)) + '_thumb' + path.extname(filePath)
+        );
         await generateThumbnail(filePath, thumbnailPath);
       }
 
@@ -148,7 +151,7 @@ exports.uploadAsset = [
         fileHash,
         originalUrl: `/uploads/${req.file.filename}`,
         thumbnailUrl: req.file.mimetype.startsWith('image/') ? 
-          `/uploads/${req.file.filename.replace(/(\.[^.]+)$/, '_thumb$1')}` : null,
+          `/uploads/${path.basename(req.file.filename, path.extname(req.file.filename))}_thumb${path.extname(req.file.filename)}` : null,
         metadata,
         createdBy: req.user?.id || 'system',
         status: 'active'
@@ -291,7 +294,9 @@ exports.updateAsset = async (req, res) => {
     if (name !== undefined) asset.name = name;
     if (description !== undefined) asset.description = description;
     if (category !== undefined) asset.category = category;
-    if (tags !== undefined) asset.tags = tags.split(',').map(tag => tag.trim());
+    if (tags !== undefined) {
+      asset.tags = Array.isArray(tags) ? tags : tags.split(',').map(tag => tag.trim());
+    }
     if (status !== undefined) asset.status = status;
     if (visibility !== undefined) asset.visibility = visibility;
     

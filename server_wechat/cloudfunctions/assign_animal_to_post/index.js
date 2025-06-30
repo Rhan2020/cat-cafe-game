@@ -31,10 +31,10 @@ exports.main = async (event, context) => {
     return { code: 400, message: 'Invalid postId format.' };
   }
   
-  // 预定义的有效岗位列表
-  const VALID_POSTS = ['post_kitchen', 'post_bar', 'post_delivery', 'post_reception', 'post_security'];
-  if (!VALID_POSTS.includes(postId)) {
-    return { code: 400, message: 'Invalid post. Allowed posts: ' + VALID_POSTS.join(', ') };
+  // 验证岗位是否有效
+  const { ANIMAL, ERROR_CODES } = require('../../constants/gameConstants');
+  if (!ANIMAL.VALID_POSTS.includes(postId)) {
+    return { code: ERROR_CODES.BAD_REQUEST, message: 'Invalid post. Allowed posts: ' + ANIMAL.VALID_POSTS.join(', ') };
   }
 
   try {
@@ -49,7 +49,7 @@ exports.main = async (event, context) => {
       }).update({
         data: {
           status: 'idle',
-          postId: '',
+          postId: null, // 使用null而不是空字符串表示未分配
         }
       });
       
