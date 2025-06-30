@@ -24,7 +24,7 @@ exports.getGameConfigs = async (req, res) => {
       data: configMap
     });
   } catch (error) {
-    console.error('Error fetching game configs:', error);
+    logger.error('Error fetching game configs:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',
@@ -175,7 +175,7 @@ exports.recruitAnimal = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error in animal recruitment:', error);
+    logger.error('Error in animal recruitment:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',
@@ -295,7 +295,7 @@ exports.spinWheel = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error spinning wheel:', error);
+    logger.error('Error spinning wheel:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',
@@ -420,7 +420,7 @@ exports.startDelivery = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error starting delivery:', error);
+    logger.error('Error starting delivery:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',
@@ -440,7 +440,7 @@ exports.startFishing = async (req, res) => {
       return res.status(400).json({ code: 400, message: 'animalIds must be a non-empty array' });
     }
 
-    // 校验动物归属及状态
+    // res.t('auto.e6a0a1e9')
     const animals = await Animal.find({ _id: { $in: animalIds }, ownerId: req.user.id });
     if (animals.length !== animalIds.length) {
       return res.status(400).json({ code: 400, message: 'Some animals not found or not owned by user' });
@@ -450,13 +450,13 @@ exports.startFishing = async (req, res) => {
       return res.status(400).json({ code: 400, message: 'Some animals are busy or too tired' });
     }
 
-    // 获取用户信息
+    // res.t('auto.e88eb7e5')
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ code: 404, message: 'User not found' });
     }
 
-    // 校验鱼饵
+    // res.t('auto.e6a0a1e9')
     let baitConfig = null;
     if (baitId) {
       const itemsConfig = await GameConfig.getActiveConfig('items');
@@ -467,31 +467,31 @@ exports.startFishing = async (req, res) => {
       if (!baitConfig) {
         return res.status(400).json({ code: 400, message: 'Invalid bait itemId' });
       }
-      // 检查用户库存
+      // res.t('auto.e6a380e6')
       if (!user.inventory[baitId] || user.inventory[baitId] < 1) {
         return res.status(400).json({ code: 400, message: 'Not enough bait in inventory' });
       }
     }
 
-    // 校验协作者
+    // res.t('auto.e6a0a1e9')
     const validCollaborators = [];
     if (Array.isArray(collaborators) && collaborators.length > 0) {
       const collaboratorUsers = await User.find({ _id: { $in: collaborators } });
       collaboratorUsers.forEach(u => validCollaborators.push(String(u._id)));
     }
 
-    const duration = fishingDuration || 30 * 60 * 1000; // 30分钟
+    const duration = fishingDuration || 30 * 60 * 1000; // 30res.t('auto.e58886e9')
     const now = new Date();
     const endTime = new Date(now.getTime() + duration);
 
-    // 计算幸运加成
+    // res.t('auto.e8aea1e7')
     const totalLuck = animals.reduce((sum, a) => sum + (a.attributes.luck || 0), 0);
     const baseLuckBonus = 1 + totalLuck / 100;
     const baitBonus = baitConfig?.effect?.luckMultiplier || 1;
     const collaboratorBonus = validCollaborators.length > 0 ? 1.2 : 1;
     const finalLuckBonus = parseFloat((baseLuckBonus * baitBonus * collaboratorBonus).toFixed(2));
 
-    // 事务：更新动物状态、扣除鱼饵、创建钓鱼会话
+    // res.t('auto.e4ba8be5')：res.t('auto.e69bb4e6')、res.t('auto.e689a3e9')、res.t('auto.e5889be5')
     const session = new FishingSession({
       ownerId: req.user.id,
       animalIds,
@@ -529,7 +529,7 @@ exports.startFishing = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error starting fishing:', error);
+    logger.error('Error starting fishing:', error);
     res.status(500).json({ code: 500, message: 'Internal Server Error', error: error.message });
   }
 };
@@ -558,17 +558,17 @@ exports.completeFishing = async (req, res) => {
       return res.status(400).json({ code: 400, message: 'Fishing session is not complete yet', data: { remainingTime: session.endTime - now } });
     }
 
-    // 生成收获
+    // res.t('auto.e7949fe6')
     const fishConfigDoc = await GameConfig.getActiveConfig('fish_types');
     const fishConfig = fishConfigDoc?.data || [
-      { itemId: 'fish_common_1', name: '小鲫鱼', rarity: 'common', weight: 50 },
-      { itemId: 'fish_common_2', name: '小鲤鱼', rarity: 'common', weight: 40 },
-      { itemId: 'fish_uncommon_1', name: '草鱼', rarity: 'uncommon', weight: 30 },
-      { itemId: 'fish_uncommon_2', name: '鲈鱼', rarity: 'uncommon', weight: 25 },
-      { itemId: 'fish_rare_1', name: '金鱼', rarity: 'rare', weight: 10 },
-      { itemId: 'fish_rare_2', name: '锦鲤', rarity: 'rare', weight: 8 },
-      { itemId: 'fish_epic_1', name: '龙鱼', rarity: 'epic', weight: 3 },
-      { itemId: 'fish_legendary_1', name: '传说之鱼', rarity: 'legendary', weight: 1 }
+      { itemId: 'fish_common_1', name: 'res.t('auto.e5b08fe9')', rarity: 'common', weight: 50 },
+      { itemId: 'fish_common_2', name: 'res.t('auto.e5b08fe9')', rarity: 'common', weight: 40 },
+      { itemId: 'fish_uncommon_1', name: 'res.t('auto.e88d89e9')', rarity: 'uncommon', weight: 30 },
+      { itemId: 'fish_uncommon_2', name: 'res.t('auto.e9b288e9')', rarity: 'uncommon', weight: 25 },
+      { itemId: 'fish_rare_1', name: 'res.t('auto.e98791e9')', rarity: 'rare', weight: 10 },
+      { itemId: 'fish_rare_2', name: 'res.t('auto.e994a6e9')', rarity: 'rare', weight: 8 },
+      { itemId: 'fish_epic_1', name: 'res.t('auto.e9be99e9')', rarity: 'epic', weight: 3 },
+      { itemId: 'fish_legendary_1', name: 'res.t('auto.e4bca0e8')', rarity: 'legendary', weight: 1 }
     ];
 
     const catches = [];
@@ -596,11 +596,11 @@ exports.completeFishing = async (req, res) => {
     }
 
     if (Math.random() < 0.1 * session.luckBonus) {
-      const bottle = { itemId: 'drift_bottle', name: '神秘漂流瓶', rarity: 'rare', count: 1 };
+      const bottle = { itemId: 'drift_bottle', name: 'res.t('auto.e7a59ee7')', rarity: 'rare', count: 1 };
       catches.push(bottle);
     }
 
-    // 更新数据库：session、动物状态、奖励入仓库
+    // res.t('auto.e69bb4e6')：session、res.t('auto.e58aa8e7')、res.t('auto.e5a596e5')
     session.status = 'completed';
     session.catches = catches;
     session.completedAt = now;
@@ -616,7 +616,7 @@ exports.completeFishing = async (req, res) => {
       return res.status(404).json({ code: 404, message: 'User not found' });
     }
 
-    // 更新用户库存
+    // res.t('auto.e69bb4e6')
     const inventoryUpdates = {};
     catches.forEach(c => {
       inventoryUpdates[`inventory.${c.itemId}`] = (inventoryUpdates[`inventory.${c.itemId}`] || 0) + c.count;
@@ -636,7 +636,7 @@ exports.completeFishing = async (req, res) => {
 
     return res.status(200).json({ code: 200, message: 'Fishing session completed', data: { sessionId, catches } });
   } catch (error) {
-    console.error('Error completing fishing:', error);
+    logger.error('Error completing fishing:', error);
     res.status(500).json({ code: 500, message: 'Internal Server Error', error: error.message });
   }
 };
@@ -721,7 +721,7 @@ function getGuaranteedAnimal(animalBreeds, guaranteedRarity) {
 
 function generateAnimalName(breedData) {
   const prefixes = ['小', '大', '萌', '乖', '胖', '瘦', '美', '帅'];
-  const suffixes = ['宝', '仔', '妹', '哥', '公主', '王子', '大人', '君'];
+  const suffixes = ['宝', '仔', '妹', '哥', 'res.t('auto.e585ace4')', 'res.t('auto.e78e8be5')', 'res.t('auto.e5a4a7e4')', '君'];
   
   const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
   const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];

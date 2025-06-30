@@ -16,7 +16,7 @@ exports.getAnimals = async (req, res) => {
       data: animals
     });
   } catch (error) {
-    console.error('Error fetching animals:', error);
+    logger.error('Error fetching animals:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',
@@ -48,7 +48,7 @@ exports.getAnimal = async (req, res) => {
       data: animal
     });
   } catch (error) {
-    console.error('Error fetching animal:', error);
+    logger.error('Error fetching animal:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',
@@ -99,7 +99,7 @@ exports.updateAnimalName = async (req, res) => {
       data: { name: animal.name }
     });
   } catch (error) {
-    console.error('Error updating animal name:', error);
+    logger.error('Error updating animal name:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',
@@ -186,7 +186,7 @@ exports.assignAnimalToPost = async (req, res) => {
       data: { animalId: animal._id, postId }
     });
   } catch (error) {
-    console.error('Error assigning animal:', error);
+    logger.error('Error assigning animal:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',
@@ -229,7 +229,7 @@ exports.unassignAnimal = async (req, res) => {
       data: { animalId: animal._id }
     });
   } catch (error) {
-    console.error('Error unassigning animal:', error);
+    logger.error('Error unassigning animal:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',
@@ -354,7 +354,7 @@ exports.upgradeAnimal = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error upgrading animal:', error);
+    logger.error('Error upgrading animal:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',
@@ -403,7 +403,7 @@ exports.restAnimal = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error resting animal:', error);
+    logger.error('Error resting animal:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',

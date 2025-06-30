@@ -24,14 +24,14 @@ exports.main = async (event, context) => {
       _openid: openid
     }).get();
 
-    console.log(`Fetched ${result.data.length} animals for user ${openid}.`);
+    logger.info(`Fetched ${result.data.length} animals for user ${openid}.`);
     return {
       code: 200,
       data: result.data
     };
 
   } catch (err) {
-    console.error(`Error in get_animals for user ${openid}:`, err);
+    logger.error(`Error in get_animals for user ${openid}:`, err);
     return {
       code: 500,
       message: 'Internal Server Error'

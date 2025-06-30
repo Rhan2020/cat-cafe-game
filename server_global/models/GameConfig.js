@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const GameConfigSchema = new Schema({
-  // 配置类型
+  // res.t('auto.e9858de7')
   configType: { 
     type: String, 
     required: true,
@@ -14,26 +14,26 @@ const GameConfigSchema = new Schema({
     ]
   },
   
-  // 配置版本
+  // res.t('auto.e9858de7')
   version: { type: String, required: true },
   
-  // 配置数据
+  // res.t('auto.e9858de7')
   data: { type: Schema.Types.Mixed, required: true },
   
-  // 生效时间
+  // res.t('auto.e7949fe6')
   effectiveFrom: { type: Date, default: Date.now },
   effectiveTo: { type: Date },
   
-  // 状态
+  // res.t('auto.e78ab6e6')
   isActive: { type: Boolean, default: true },
   
-  // 创建和更新信息
-  createdBy: { type: String, required: true }, // 管理员ID
+  // res.t('auto.e5889be5')
+  createdBy: { type: String, required: true }, // res.t('auto.e7aea1e7')ID
   updatedBy: { type: String },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   
-  // 备注
+  // res.t('auto.e5a487e6')
   description: { type: String },
   changeLog: [{ 
     timestamp: { type: Date, default: Date.now },
@@ -43,12 +43,12 @@ const GameConfigSchema = new Schema({
   }]
 });
 
-// 添加索引
+// res.t('auto.e6b7bbe5')
 GameConfigSchema.index({ configType: 1 });
 GameConfigSchema.index({ isActive: 1 });
 GameConfigSchema.index({ effectiveFrom: 1, effectiveTo: 1 });
 
-// 静态方法：获取有效配置
+// res.t('auto.e99d99e6')：res.t('auto.e88eb7e5')
 GameConfigSchema.statics.getActiveConfig = function(configType) {
   const now = new Date();
   return this.findOne({

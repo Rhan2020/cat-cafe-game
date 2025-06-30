@@ -5,7 +5,7 @@ const redis = require('redis');
 let redisClient = null;
 if (process.env.REDIS_URL) {
   redisClient = redis.createClient({ url: process.env.REDIS_URL });
-  redisClient.connect().catch(console.error);
+  redisClient.connect().catch(logger.error);
 }
 
 // fallback map with TTL 10 min
@@ -59,7 +59,7 @@ module.exports = function verifyHmac(req, res, next) {
     }
     next();
   }).catch(err => {
-    console.error('HMAC verify error', err);
+    logger.error('HMAC verify error', err);
     return res.status(500).json({ code: 500, message: 'Internal error' });
   });
 };

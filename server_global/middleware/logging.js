@@ -1,6 +1,6 @@
 const winston = require('winston');
 
-// 创建日志记录器
+// res.t('auto.e5889be5')
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: winston.format.combine(
@@ -10,13 +10,13 @@ const logger = winston.createLogger({
   ),
   defaultMeta: { service: 'cat-cafe-global' },
   transports: [
-    // 写入所有日志到 combined.log
+    // res.t('auto.e58699e5') combined.log
     new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
     new winston.transports.File({ filename: 'logs/combined.log' }),
   ],
 });
 
-// 在非生产环境下也输出到控制台
+// res.t('auto.e59ca8e9')
 if (process.env.NODE_ENV !== 'production') {
   logger.add(new winston.transports.Console({
     format: winston.format.combine(
@@ -26,7 +26,7 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
-// HTTP请求日志中间件
+// HTTPres.t('auto.e8afb7e6')
 const httpLogger = (req, res, next) => {
   const start = Date.now();
   

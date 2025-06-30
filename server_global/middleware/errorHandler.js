@@ -1,11 +1,11 @@
 const errorHandler = (err, req, res, next) => {
-  console.error(`[ERROR] ${new Date().toISOString()} - ${err.stack}`);
+  logger.error(`[ERROR] ${new Date().toISOString()} - ${err.stack}`);
   
-  // 不同类型的错误处理
+  // res.t('auto.e4b88de5')
   if (err.name === 'ValidationError') {
     return res.status(400).json({ 
       code: 400,
-      message: '输入数据验证失败',
+      message: 'res.t('auto.e8be93e5')',
       error: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
@@ -13,21 +13,21 @@ const errorHandler = (err, req, res, next) => {
   if (err.name === 'CastError') {
     return res.status(400).json({ 
       code: 400,
-      message: '无效的ID格式' 
+      message: 'res.t('auto.e697a0e6')IDres.t('auto.e6a0bce5')' 
     });
   }
   
   if (err.code === 11000) {
     return res.status(400).json({ 
       code: 400,
-      message: '数据已存在' 
+      message: 'res.t('auto.e695b0e6')' 
     });
   }
   
-  // 默认错误处理
+  // res.t('auto.e9bb98e8')
   res.status(500).json({ 
     code: 500,
-    message: '服务器内部错误',
+    message: 'res.t('auto.e69c8de5')',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 };

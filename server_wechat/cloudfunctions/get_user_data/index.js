@@ -32,7 +32,7 @@ exports.main = async (event, context) => {
         animals: animalsResult.data
     };
 
-    console.log(`Fetched full data for user ${openid}.`);
+    logger.info(`Fetched full data for user ${openid}.`);
 
     return {
       code: 200,
@@ -41,7 +41,7 @@ exports.main = async (event, context) => {
     };
 
   } catch (err) {
-    console.error(`Error in get_user_data for user ${openid}:`, err);
+    logger.error(`Error in get_user_data for user ${openid}:`, err);
     return {
       code: 500,
       message: 'Internal server error',

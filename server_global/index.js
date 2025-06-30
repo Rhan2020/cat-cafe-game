@@ -32,14 +32,14 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Database Connection
 const dbURI = process.env.MONGODB_URI;
 if (!dbURI) {
-  console.error('Error: MONGODB_URI is not defined in the .env file.');
+  logger.error('Error: MONGODB_URI is not defined in the .env file.');
   process.exit(1);
 }
 
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected successfully.'))
+  .then(() => logger.info('MongoDB connected successfully.'))
   .catch(err => {
-    console.error('MongoDB connection error:', err);
+    logger.error('MongoDB connection error:', err);
     process.exit(1);
   });
 
@@ -96,9 +96,9 @@ if (!fs.existsSync(logsDir)) {
 app.use(i18nMiddleware);
 
 app.listen(port, () => {
-  console.log(`res.t('auto.e585a8e7') ${port} res.t('auto.e4b88ae8')`);
-  console.log(`res.t('auto.e78eafe5'): ${process.env.NODE_ENV || 'development'}`);
-  console.log(`res.t('auto.e581a5e5'): http://localhost:${port}/health`);
+  logger.info(`res.t('auto.e585a8e7') ${port} res.t('auto.e4b88ae8')`);
+  logger.info(`res.t('auto.e78eafe5'): ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`res.t('auto.e581a5e5'): http://localhost:${port}/health`);
 });
 
 module.exports = app;

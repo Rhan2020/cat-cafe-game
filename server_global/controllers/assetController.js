@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const sharp = require('sharp');
 const { logger } = require('../middleware/logging');
 
-// 配置文件上传
+// res.t('auto.e9858de7')
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
     const uploadDir = path.join(__dirname, '../uploads');
@@ -25,7 +25,7 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  // 允许的文件类型
+  // res.t('auto.e58581e8')
   const allowedTypes = {
     'image/jpeg': '.jpg',
     'image/png': '.png',
@@ -35,13 +35,13 @@ const fileFilter = (req, file, cb) => {
     'audio/wav': '.wav',
     'audio/ogg': '.ogg',
     'video/mp4': '.mp4',
-    'application/json': '.json' // 动画配置文件
+    'application/json': '.json' // res.t('auto.e58aa8e7')
   };
 
   if (allowedTypes[file.mimetype]) {
     cb(null, true);
   } else {
-    cb(new Error(`不支持的文件类型: ${file.mimetype}`), false);
+    cb(new Error(`res.t('auto.e4b88de6'): ${file.mimetype}`), false);
   }
 };
 
@@ -49,17 +49,17 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 50 * 1024 * 1024 // 50MB限制
+    fileSize: 50 * 1024 * 1024 // 50MBres.t('auto.e99990e5')
   }
 });
 
-// 计算文件哈希
+// res.t('auto.e8aea1e7')
 const calculateFileHash = async (filePath) => {
   const fileBuffer = await fs.readFile(filePath);
   return crypto.createHash('sha256').update(fileBuffer).digest('hex');
 };
 
-// 获取图片元数据
+// res.t('auto.e88eb7e5')
 const getImageMetadata = async (filePath) => {
   try {
     const metadata = await sharp(filePath).metadata();
@@ -70,12 +70,12 @@ const getImageMetadata = async (filePath) => {
       colorDepth: metadata.channels
     };
   } catch (error) {
-    logger.error('获取图片元数据失败:', error);
+    logger.error('res.t('auto.e88eb7e5'):', error);
     return {};
   }
 };
 
-// 生成缩略图
+// res.t('auto.e7949fe6')
 const generateThumbnail = async (originalPath, thumbnailPath) => {
   try {
     await sharp(originalPath)
@@ -87,12 +87,12 @@ const generateThumbnail = async (originalPath, thumbnailPath) => {
       .toFile(thumbnailPath);
     return true;
   } catch (error) {
-    logger.error('生成缩略图失败:', error);
+    logger.error('res.t('auto.e7949fe6'):', error);
     return false;
   }
 };
 
-// @desc    上传素材
+// @desc    res.t('auto.e4b88ae4')
 // @route   POST /api/assets/upload
 // @access  Private
 exports.uploadAsset = [
@@ -100,37 +100,37 @@ exports.uploadAsset = [
   async (req, res) => {
     try {
       if (!req.file) {
-        return res.status(400).json({ message: '请选择要上传的文件' });
+        return res.status(400).json({ message: 'res.t('auto.e8afb7e9')' });
       }
 
       const { name, description, category, tags } = req.body;
       const filePath = req.file.path;
       
-      // 验证必填字段
+      // res.t('auto.e9aa8ce8')
       if (!name || !category) {
-        await fs.unlink(filePath); // 删除已上传的文件
-        return res.status(400).json({ message: '名称和分类为必填项' });
+        await fs.unlink(filePath); // res.t('auto.e588a0e9')
+        return res.status(400).json({ message: 'res.t('auto.e5908de7')' });
       }
 
-      // 计算文件哈希
+      // res.t('auto.e8aea1e7')
       const fileHash = await calculateFileHash(filePath);
       
-      // 检查是否已存在相同文件
+      // res.t('auto.e6a380e6')
       const existingAsset = await Asset.findByHash(fileHash);
       if (existingAsset) {
-        await fs.unlink(filePath); // 删除重复文件
+        await fs.unlink(filePath); // res.t('auto.e588a0e9')
         return res.status(409).json({ 
-          message: '文件已存在',
+          message: 'res.t('auto.e69687e4')',
           existingAsset: existingAsset._id
         });
       }
 
-      // 获取文件元数据
+      // res.t('auto.e88eb7e5')
       let metadata = {};
       if (req.file.mimetype.startsWith('image/')) {
         metadata = await getImageMetadata(filePath);
         
-        // 生成缩略图 - 使用path模块安全处理文件路径
+        // res.t('auto.e7949fe6') - res.t('auto.e4bdbfe7')pathres.t('auto.e6a8a1e5')
         const thumbnailPath = path.join(
           path.dirname(filePath),
           path.basename(filePath, path.extname(filePath)) + '_thumb' + path.extname(filePath)
@@ -138,7 +138,7 @@ exports.uploadAsset = [
         await generateThumbnail(filePath, thumbnailPath);
       }
 
-      // 创建素材记录
+      // res.t('auto.e5889be5')
       const asset = new Asset({
         name,
         description: description || '',
@@ -159,35 +159,35 @@ exports.uploadAsset = [
 
       await asset.save();
 
-      logger.info(`素材上传成功: ${asset._id}`, {
+      logger.info(`res.t('auto.e7b4a0e6'): ${asset._id}`, {
         userId: req.user?.id,
         fileName: req.file.originalname,
         fileSize: req.file.size
       });
 
       res.status(201).json({
-        message: '素材上传成功',
+        message: 'res.t('auto.e7b4a0e6')',
         data: asset
       });
 
     } catch (error) {
-      logger.error('素材上传失败:', error);
+      logger.error('res.t('auto.e7b4a0e6'):', error);
       
-      // 清理文件
+      // res.t('auto.e6b885e7')
       if (req.file) {
         try {
           await fs.unlink(req.file.path);
         } catch (cleanupError) {
-          logger.error('清理文件失败:', cleanupError);
+          logger.error('res.t('auto.e6b885e7'):', cleanupError);
         }
       }
 
-      res.status(500).json({ message: '素材上传失败' });
+      res.status(500).json({ message: 'res.t('auto.e7b4a0e6')' });
     }
   }
 ];
 
-// @desc    获取素材列表
+// @desc    res.t('auto.e88eb7e5')
 // @route   GET /api/assets
 // @access  Private
 exports.getAssets = async (req, res) => {
@@ -203,7 +203,7 @@ exports.getAssets = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    // 构建查询条件
+    // res.t('auto.e69e84e5')
     const query = {};
     
     if (category) query.category = category;
@@ -219,16 +219,16 @@ exports.getAssets = async (req, res) => {
       query.tags = { $in: tagArray };
     }
 
-    // 分页参数
+    // res.t('auto.e58886e9')
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    // 排序参数
+    // res.t('auto.e68e92e5')
     const sort = {};
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-    // 执行查询
+    // res.t('auto.e689a7e8')
     const [assets, total] = await Promise.all([
       Asset.find(query)
         .sort(sort)
@@ -249,12 +249,12 @@ exports.getAssets = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error('获取素材列表失败:', error);
-    res.status(500).json({ message: '获取素材列表失败' });
+    logger.error('res.t('auto.e88eb7e5'):', error);
+    res.status(500).json({ message: 'res.t('auto.e88eb7e5')' });
   }
 };
 
-// @desc    获取单个素材详情
+// @desc    res.t('auto.e88eb7e5')
 // @route   GET /api/assets/:id
 // @access  Private
 exports.getAssetById = async (req, res) => {
@@ -264,21 +264,21 @@ exports.getAssetById = async (req, res) => {
       .select('-fileHash');
 
     if (!asset) {
-      return res.status(404).json({ message: '素材不存在' });
+      return res.status(404).json({ message: 'res.t('auto.e7b4a0e6')' });
     }
 
-    // 标记为已使用
+    // res.t('auto.e6a087e8')
     await asset.markAsUsed();
 
     res.json({ data: asset });
 
   } catch (error) {
-    logger.error('获取素材详情失败:', error);
-    res.status(500).json({ message: '获取素材详情失败' });
+    logger.error('res.t('auto.e88eb7e5'):', error);
+    res.status(500).json({ message: 'res.t('auto.e88eb7e5')' });
   }
 };
 
-// @desc    更新素材信息
+// @desc    res.t('auto.e69bb4e6')
 // @route   PUT /api/assets/:id
 // @access  Private
 exports.updateAsset = async (req, res) => {
@@ -287,10 +287,10 @@ exports.updateAsset = async (req, res) => {
     
     const asset = await Asset.findById(req.params.id);
     if (!asset) {
-      return res.status(404).json({ message: '素材不存在' });
+      return res.status(404).json({ message: 'res.t('auto.e7b4a0e6')' });
     }
 
-    // 更新字段
+    // res.t('auto.e69bb4e6')
     if (name !== undefined) asset.name = name;
     if (description !== undefined) asset.description = description;
     if (category !== undefined) asset.category = category;
@@ -304,59 +304,59 @@ exports.updateAsset = async (req, res) => {
 
     await asset.save();
 
-    logger.info(`素材信息更新: ${asset._id}`, {
+    logger.info(`res.t('auto.e7b4a0e6'): ${asset._id}`, {
       userId: req.user?.id,
       changes: req.body
     });
 
     res.json({
-      message: '素材信息更新成功',
+      message: 'res.t('auto.e7b4a0e6')',
       data: asset
     });
 
   } catch (error) {
-    logger.error('更新素材信息失败:', error);
-    res.status(500).json({ message: '更新素材信息失败' });
+    logger.error('res.t('auto.e69bb4e6'):', error);
+    res.status(500).json({ message: 'res.t('auto.e69bb4e6')' });
   }
 };
 
-// @desc    删除素材
+// @desc    res.t('auto.e588a0e9')
 // @route   DELETE /api/assets/:id
 // @access  Private
 exports.deleteAsset = async (req, res) => {
   try {
     const asset = await Asset.findById(req.params.id);
     if (!asset) {
-      return res.status(404).json({ message: '素材不存在' });
+      return res.status(404).json({ message: 'res.t('auto.e7b4a0e6')' });
     }
 
-    // 检查是否被游戏配置引用
+    // res.t('auto.e6a380e6')
     if (asset.gameConfigReferences && asset.gameConfigReferences.length > 0) {
       return res.status(400).json({ 
-        message: '素材正在被游戏配置使用，无法删除',
+        message: 'res.t('auto.e7b4a0e6')，res.t('auto.e697a0e6')',
         references: asset.gameConfigReferences
       });
     }
 
-    // 软删除：标记为已删除
+    // res.t('auto.e8bdafe5')：res.t('auto.e6a087e8')
     asset.status = 'deleted';
     asset.updatedBy = req.user?.id || 'system';
     await asset.save();
 
-    logger.info(`素材删除: ${asset._id}`, {
+    logger.info(`res.t('auto.e7b4a0e6'): ${asset._id}`, {
       userId: req.user?.id,
       fileName: asset.fileName
     });
 
-    res.json({ message: '素材删除成功' });
+    res.json({ message: 'res.t('auto.e7b4a0e6')' });
 
   } catch (error) {
-    logger.error('删除素材失败:', error);
-    res.status(500).json({ message: '删除素材失败' });
+    logger.error('res.t('auto.e588a0e9'):', error);
+    res.status(500).json({ message: 'res.t('auto.e588a0e9')' });
   }
 };
 
-// @desc    获取素材统计信息
+// @desc    res.t('auto.e88eb7e5')
 // @route   GET /api/assets/stats
 // @access  Private
 exports.getAssetStats = async (req, res) => {
@@ -394,12 +394,12 @@ exports.getAssetStats = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error('获取素材统计失败:', error);
-    res.status(500).json({ message: '获取素材统计失败' });
+    logger.error('res.t('auto.e88eb7e5'):', error);
+    res.status(500).json({ message: 'res.t('auto.e88eb7e5')' });
   }
 };
 
-// @desc    批量操作素材
+// @desc    res.t('auto.e689b9e9')
 // @route   POST /api/assets/batch
 // @access  Private
 exports.batchOperateAssets = async (req, res) => {
@@ -407,7 +407,7 @@ exports.batchOperateAssets = async (req, res) => {
     const { assetIds, operation, data } = req.body;
     
     if (!assetIds || !Array.isArray(assetIds) || assetIds.length === 0) {
-      return res.status(400).json({ message: '请选择要操作的素材' });
+      return res.status(400).json({ message: 'res.t('auto.e8afb7e9')' });
     }
 
     let result;
@@ -444,10 +444,10 @@ exports.batchOperateAssets = async (req, res) => {
         break;
         
       default:
-        return res.status(400).json({ message: '不支持的操作' });
+        return res.status(400).json({ message: 'res.t('auto.e4b88de6')' });
     }
 
-    logger.info(`批量操作素材: ${operation}`, {
+    logger.info(`res.t('auto.e689b9e9'): ${operation}`, {
       userId: req.user?.id,
       assetCount: assetIds.length,
       operation,
@@ -455,13 +455,13 @@ exports.batchOperateAssets = async (req, res) => {
     });
 
     res.json({
-      message: '批量操作完成',
+      message: 'res.t('auto.e689b9e9')',
       affectedCount: result.modifiedCount
     });
 
   } catch (error) {
-    logger.error('批量操作素材失败:', error);
-    res.status(500).json({ message: '批量操作失败' });
+    logger.error('res.t('auto.e689b9e9'):', error);
+    res.status(500).json({ message: 'res.t('auto.e689b9e9')' });
   }
 };
 

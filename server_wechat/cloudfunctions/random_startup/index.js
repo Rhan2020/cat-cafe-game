@@ -74,7 +74,7 @@ exports.main = async (event, context) => {
       }
     });
 
-    console.log(`User ${openid} completed startup with scenario: ${selectedScenario.scenarioId}`);
+    logger.info(`User ${openid} completed startup with scenario: ${selectedScenario.scenarioId}`);
 
     return {
       code: 200,
@@ -86,7 +86,7 @@ exports.main = async (event, context) => {
     };
 
   } catch (err) {
-    console.error(`Error in random_startup for user ${openid}:`, err);
+    logger.error(`Error in random_startup for user ${openid}:`, err);
     return { code: 500, message: 'Internal Server Error', error: err.message };
   }
 };

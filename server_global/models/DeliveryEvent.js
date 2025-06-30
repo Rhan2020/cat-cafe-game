@@ -2,31 +2,31 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const DeliveryEventSchema = new Schema({
-  // 基础信息
+  // res.t('auto.e59fbae7')
   ownerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   animalId: { type: Schema.Types.ObjectId, ref: 'Animal', required: true },
   
-  // 事件类型
+  // res.t('auto.e4ba8be4')
   eventType: { 
     type: String, 
     required: true,
     enum: ['normal_delivery', 'random_event']
   },
-  eventId: { type: String }, // 具体事件ID（配置表中的事件）
+  eventId: { type: String }, // res.t('auto.e585b7e4')ID（res.t('auto.e9858de7')）
   
-  // 状态
+  // res.t('auto.e78ab6e6')
   status: { 
     type: String, 
     required: true,
     enum: ['in_progress', 'waiting_choice', 'completed', 'failed']
   },
   
-  // 时间信息
+  // res.t('auto.e697b6e9')
   startTime: { type: Date, required: true },
   endTime: { type: Date, required: true },
   completedAt: { type: Date },
   
-  // 选择相关（随机事件）
+  // res.t('auto.e98089e6')（res.t('auto.e99a8fe6')）
   choices: [{ 
     id: String,
     text: String,
@@ -39,7 +39,7 @@ const DeliveryEventSchema = new Schema({
   choiceTimeout: { type: Date },
   timeoutAction: { type: String },
   
-  // 结果
+  // res.t('auto.e7bb93e6')
   result: {
     method: String, // 'completed', 'friend_help', 'timeout', etc.
     goldReward: { type: Number, default: 0 },
@@ -49,25 +49,25 @@ const DeliveryEventSchema = new Schema({
     experience: { type: Number, default: 0 }
   },
   
-  // 创建时间
+  // res.t('auto.e5889be5')
   createdAt: { type: Date, default: Date.now }
 });
 
-// 添加索引
+// res.t('auto.e6b7bbe5')
 DeliveryEventSchema.index({ ownerId: 1 });
 DeliveryEventSchema.index({ ownerId: 1, status: 1 });
 DeliveryEventSchema.index({ animalId: 1 });
 DeliveryEventSchema.index({ createdAt: -1 });
 DeliveryEventSchema.index({ endTime: 1 });
 
-// 虚拟字段：是否过期
+// res.t('auto.e8999ae6')：res.t('auto.e698afe5')
 DeliveryEventSchema.virtual('isExpired').get(function() {
   return this.status === 'waiting_choice' && 
          this.choiceTimeout && 
          new Date() > this.choiceTimeout;
 });
 
-// 虚拟字段：是否完成
+// res.t('auto.e8999ae6')：res.t('auto.e698afe5')
 DeliveryEventSchema.virtual('isCompleted').get(function() {
   return ['completed', 'failed'].includes(this.status);
 });

@@ -121,7 +121,7 @@ exports.main = async (event, context) => {
     };
 
   } catch (error) {
-    console.error('Error getting asset URLs:', error);
+    logger.error('Error getting asset URLs:', error);
     return {
       code: 500,
       message: 'Internal server error.'

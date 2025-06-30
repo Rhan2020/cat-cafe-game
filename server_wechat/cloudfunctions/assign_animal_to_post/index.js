@@ -86,7 +86,7 @@ exports.main = async (event, context) => {
         return { code: 404, message: 'Animal not found, is not idle, or you do not own it.' };
     }
     
-    console.error("Transaction failed:", e);
+    logger.error("Transaction failed:", e);
     return { code: 500, message: 'Internal Server Error' };
   }
 }; 

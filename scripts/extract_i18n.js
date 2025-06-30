@@ -30,6 +30,7 @@ function setDeep(obj, keyPath, value) {
 }
 
 function processFile(file) {
+  if (!fs.statSync(file).isFile()) return;
   let code = fs.readFileSync(file, 'utf-8');
   const chineseRegex = /([\u4e00-\u9fa5]{2,})/g;
   let match;
@@ -50,7 +51,7 @@ function processFile(file) {
   }
   if (modified) {
     fs.writeFileSync(file, code, 'utf-8');
-    console.log('Replaced in', path.relative(root, file));
+    logger.info('Replaced in', path.relative(root, file));
   }
 }
 
@@ -60,7 +61,7 @@ files.forEach(f => processFile(path.join(root, f)));
 if (WRITE_MODE) {
   fs.writeFileSync(zhLocalePath, JSON.stringify(zhLocale, null, 2), 'utf-8');
   fs.writeFileSync(enLocalePath, JSON.stringify(enLocale, null, 2), 'utf-8');
-  console.log('Locales updated.');
+  logger.info('Locales updated.');
 } else {
-  console.log('[Dry-run] Finished scanning. Run with --write to replace.');
+  logger.info('[Dry-run] Finished scanning. Run with --write to replace.');
 }

@@ -8,14 +8,14 @@ const files = glob.sync('**/*.js', { cwd: projectRoot, ignore: ['node_modules/**
 
 files.forEach(file => {
   const full = path.join(projectRoot, file);
+  if (!fs.statSync(full).isFile()) return;
   let content = fs.readFileSync(full, 'utf-8');
-  let replaced = false;
-  content = content.replace(/console\.log/g, 'logger.info');
-  content = content.replace(/console\.error/g, 'logger.error');
-  content = content.replace(/console\.warn/g, 'logger.warn');
-  if (content !== fs.readFileSync(full, 'utf-8')) {
-    replaced = true;
-    fs.writeFileSync(full, content, 'utf-8');
+  const newContent = content
+    .replace(/console\.log/g, 'logger.info')
+    .replace(/console\.error/g, 'logger.error')
+    .replace(/console\.warn/g, 'logger.warn');
+  if (newContent !== content) {
+    fs.writeFileSync(full, newContent, 'utf-8');
+    logger.info('Updated', file);
   }
-  if (replaced) console.log('Updated', file);
 });

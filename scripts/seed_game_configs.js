@@ -13,7 +13,7 @@ const GameConfig = require('../server_global/models/GameConfig');
     if (!dbURI) throw new Error('MONGODB_URI not set');
 
     await mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true });
-    console.log('Connected to MongoDB');
+    logger.info('Connected to MongoDB');
 
     const adminId = 'system_seed_script';
 
@@ -215,12 +215,12 @@ const GameConfig = require('../server_global/models/GameConfig');
       { upsert: true }
     );
 
-    console.log('GameConfig seeding completed');
-    console.log('Special visitor & bubble configs seeded');
+    logger.info('GameConfig seeding completed');
+    logger.info('Special visitor & bubble configs seeded');
     await mongoose.disconnect();
     process.exit(0);
   } catch (err) {
-    console.error('Seeding failed:', err);
+    logger.error('Seeding failed:', err);
     process.exit(1);
   }
 })();

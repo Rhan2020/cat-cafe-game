@@ -273,9 +273,9 @@ async function setupGameConfigs() {
         {
           breedId: 'cat_001',
           species: 'cat',
-          name: '中华田园猫',
+          name: 'res.t('auto.e4b8ade5')',
           rarity: 'N',
-          description: '最常见的猫咪',
+          description: 'res.t('auto.e69c80e5')',
           baseAttributes: {
             speed: 5,
             luck: 1,
@@ -295,8 +295,8 @@ async function setupGameConfigs() {
       data: [
         {
           postId: 'kitchen',
-          name: '后厨',
-          description: '制作美味的食物',
+          name: 'res.t('auto.e5908ee5')',
+          description: 'res.t('auto.e588b6e4')',
           requiredSpecies: ['cat'],
           baseProduction: 10,
           unlockLevel: 1
@@ -310,7 +310,7 @@ async function setupGameConfigs() {
       data: [
         {
           id: 'gold_small',
-          name: '少量金币',
+          name: 'res.t('auto.e5b091e9')',
           type: 'gold',
           amount: 100,
           weight: 30

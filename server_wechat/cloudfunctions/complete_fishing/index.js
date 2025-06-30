@@ -141,7 +141,7 @@ exports.main = async (event, context) => {
       }
     });
 
-    console.log(`Fishing session ${sessionId} completed for user ${openid}, caught ${catches.length} items`);
+    logger.info(`Fishing session ${sessionId} completed for user ${openid}, caught ${catches.length} items`);
 
     return {
       code: 200,
@@ -155,7 +155,7 @@ exports.main = async (event, context) => {
     };
 
   } catch (err) {
-    console.error(`Error in complete_fishing for user ${openid}:`, err);
+    logger.error(`Error in complete_fishing for user ${openid}:`, err);
     return { code: 500, message: 'Internal Server Error', error: err.message };
   }
 };
@@ -217,7 +217,7 @@ async function getFishConfiguration() {
       return configResult.data.data;
     }
   } catch (err) {
-    console.warn('Failed to fetch fish_types config, fallback to defaults:', err.message);
+    logger.warn('Failed to fetch fish_types config, fallback to defaults:', err.message);
   }
 
   // fallback 默认值

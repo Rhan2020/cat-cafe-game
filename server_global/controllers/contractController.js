@@ -7,7 +7,7 @@ const SocialAction = require('../models/SocialAction');
 
 const nanoid = customAlphabet('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', 8);
 
-// 创建契约邀请
+// res.t('auto.e5889be5')
 exports.createInvite = async (req, res) => {
   try {
     const { contractType } = req.body;
@@ -15,7 +15,7 @@ exports.createInvite = async (req, res) => {
       return res.status(400).json({ code: 400, message: 'contractType is required' });
     }
 
-    // 校验模板
+    // res.t('auto.e6a0a1e9')
     const templatesConfig = await GameConfig.getActiveConfig('contract_templates');
     if (!templatesConfig) {
       return res.status(500).json({ code: 500, message: 'Contract templates config missing' });
@@ -25,14 +25,14 @@ exports.createInvite = async (req, res) => {
       return res.status(400).json({ code: 400, message: 'Invalid contractType' });
     }
 
-    // 防刷：一天最多创建5个邀请
+    // res.t('auto.e998b2e5')：res.t('auto.e4b880e5')5res.t('auto.e4b8aae9')
     const dayStart = new Date(); dayStart.setHours(0,0,0,0);
     const invitesToday = await ContractInvite.countDocuments({ inviterId: req.user.id, createdAt: { $gte: dayStart } });
     if (invitesToday >= 5) {
       return res.status(429).json({ code: 429, message: 'Invite limit reached for today' });
     }
 
-    // 生成唯一code
+    // res.t('auto.e7949fe6')code
     let inviteCode;
     do { inviteCode = nanoid(); } while (await ContractInvite.findOne({ inviteCode }));
 
@@ -46,7 +46,7 @@ exports.createInvite = async (req, res) => {
       expiresAt
     });
 
-    // 创建社交行为记录
+    // res.t('auto.e5889be5')
     await SocialAction.create({
       fromUserId: req.user.id,
       toUserId: '',
@@ -59,12 +59,12 @@ exports.createInvite = async (req, res) => {
 
     res.status(200).json({ code: 200, message: 'Invite created', data: { inviteCode, expiresAt, template } });
   } catch (err) {
-    console.error('Error creating contract invite:', err);
+    logger.error('Error creating contract invite:', err);
     res.status(500).json({ code: 500, message: 'Internal Server Error', error: err.message });
   }
 };
 
-// 接受契约邀请
+// res.t('auto.e68ea5e5')
 exports.acceptInvite = async (req, res) => {
   try {
     const { inviteCode } = req.body;
@@ -85,20 +85,20 @@ exports.acceptInvite = async (req, res) => {
       return res.status(400).json({ code: 400, message: 'Cannot accept own invite' });
     }
 
-    // 检查是否已接受过该邀请者的契约
+    // res.t('auto.e6a380e6')
     const existingContractAnimal = await Animal.findOne({ ownerId: req.user.id, 'contractInfo.fromFriend': String(invite.inviterId) });
     if (existingContractAnimal) {
       return res.status(400).json({ code: 400, message: 'Already accepted invite from this player' });
     }
 
-    // 创建动物 & 奖励双方
+    // res.t('auto.e5889be5') & res.t('auto.e5a596e5')
     const templatesConfig = await GameConfig.getActiveConfig('contract_templates');
     const template = templatesConfig?.data.find(t => t.id === invite.contractType);
     if (!template) {
       return res.status(500).json({ code: 500, message: 'Template missing' });
     }
 
-    // 创建动物给受邀者
+    // res.t('auto.e5889be5')
     const animal = new Animal({
       ownerId: req.user.id,
       species: template.species,
@@ -109,7 +109,7 @@ exports.acceptInvite = async (req, res) => {
       contractInfo: { fromFriend: String(invite.inviterId), contractType: invite.contractType, createdAt: new Date() }
     });
 
-    // 双方互加好友
+    // res.t('auto.e58f8ce6')
     await Promise.all([
       animal.save(),
       User.updateOne({ _id: req.user.id }, { $addToSet: { friends: String(invite.inviterId) } }),
@@ -121,12 +121,12 @@ exports.acceptInvite = async (req, res) => {
     invite.acceptedAt = new Date();
     await invite.save();
 
-    // 更新 SocialAction 状态
+    // res.t('auto.e69bb4e6') SocialAction res.t('auto.e78ab6e6')
     await SocialAction.updateOne({ relatedId: invite._id, actionType: 'friend_contract' }, { $set: { toUserId: req.user.id, status: 'completed', completedAt: new Date() } });
 
     res.status(200).json({ code: 200, message: 'Invite accepted', data: { animal } });
   } catch (err) {
-    console.error('Error accepting invite:', err);
+    logger.error('Error accepting invite:', err);
     res.status(500).json({ code: 500, message: 'Internal Server Error', error: err.message });
   }
 };

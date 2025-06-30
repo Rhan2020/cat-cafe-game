@@ -150,7 +150,7 @@ exports.main = async (event, context) => {
       }
     });
 
-    console.log(`Fishing session started for user ${openid} with animals: ${animalIds.join(', ')}`);
+    logger.info(`Fishing session started for user ${openid} with animals: ${animalIds.join(', ')}`);
 
     return {
       code: 200,
@@ -167,7 +167,7 @@ exports.main = async (event, context) => {
     };
 
   } catch (err) {
-    console.error(`Error in start_fishing for user ${openid}:`, err);
+    logger.error(`Error in start_fishing for user ${openid}:`, err);
     return { code: 500, message: 'Internal Server Error', error: err.message };
   }
 };

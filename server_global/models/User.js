@@ -2,24 +2,24 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
-  // 认证相关
+  // res.t('auto.e8aea4e8')
   authProviderId: { type: String, required: true, unique: true }, // Google ID, Apple ID, etc.
   authProvider: { type: String, required: true }, // 'google', 'apple', 'twitter', etc.
   
-  // 基础信息
+  // res.t('auto.e59fbae7')
   createdAt: { type: Date, default: Date.now },
   lastLoginAt: { type: Date, default: Date.now },
   nickname: { type: String, required: true },
   avatarUrl: { type: String, default: '' },
   
-  // 游戏货币
+  // res.t('auto.e6b8b8e6')
   gold: { type: Number, default: 1000 },
   gems: { type: Number, default: 100 },
   
-  // 道具仓库
+  // res.t('auto.e98193e5')
   inventory: { type: Object, default: {} },
   
-  // 用户设置
+  // res.t('auto.e794a8e6')
   settings: { 
     type: Object, 
     default: { 
@@ -30,7 +30,7 @@ const UserSchema = new Schema({
     } 
   },
 
-  // 开局信息
+  // res.t('auto.e5bc80e5')
   debut: {
     scenarioId: { type: String, default: '' },
     type: { type: String, default: 'N' },
@@ -40,14 +40,14 @@ const UserSchema = new Schema({
     rewards: { type: Object, default: {} }
   },
 
-  // 店铺信息
+  // res.t('auto.e5ba97e9')
   shop: {
     level: { type: Number, default: 1 },
     posts: [{ type: String }],
     facilities: { type: Object, default: {} }
   },
 
-  // 渔场数据
+  // res.t('auto.e6b894e5')
   fishing: {
     level: { type: Number, default: 1 },
     totalSessions: { type: Number, default: 0 },
@@ -55,7 +55,7 @@ const UserSchema = new Schema({
     lastFishingTime: { type: Date }
   },
 
-  // 每日数据
+  // res.t('auto.e6af8fe6')
   dailyData: {
     wheelSpins: { type: Number, default: 0 },
     adWheelSpins: { type: Number, default: 0 },
@@ -63,13 +63,13 @@ const UserSchema = new Schema({
     lastWheelReset: { type: String, default: '' }
   },
 
-  // 好友列表
+  // res.t('auto.e5a5bde5')
   friends: [{ type: String }],
 
-  // 成就列表
+  // res.t('auto.e68890e5')
   achievements: [{ type: String }],
 
-  // 统计数据
+  // res.t('auto.e7bb9fe8')
   statistics: {
     totalEarnings: { type: Number, default: 0 },
     animalsCollected: { type: Number, default: 0 },
@@ -77,16 +77,16 @@ const UserSchema = new Schema({
     deliveryEventsCompleted: { type: Number, default: 0 }
   },
 
-  // 债务（地狱开局）
+  // res.t('auto.e580bae5')（res.t('auto.e59cb0e7')）
   debt: { type: Number, default: 0 },
 
-  // 账户状态
+  // res.t('auto.e8b4a6e6')
   isActive: { type: Boolean, default: true },
   isBanned: { type: Boolean, default: false },
   banReason: { type: String, default: '' }
 });
 
-// 添加索引
+// res.t('auto.e6b7bbe5')
 UserSchema.index({ authProviderId: 1, authProvider: 1 });
 UserSchema.index({ createdAt: -1 });
 UserSchema.index({ lastLoginAt: -1 });
