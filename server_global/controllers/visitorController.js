@@ -93,7 +93,7 @@ exports.triggerRandomVisitor = async (userId) => {
 };
 
 function selectOutcome(outcomes) {
-  if (!outcomes || outcomes.length === 0) return { message: 'res.t('auto.e5b9b3e5')' };
+  if (!outcomes || outcomes.length === 0) return { message: res.t ? res.t('auto.e5b9b3e5', '平安无事') : '平安无事' };
   const rand = Math.random();
   let cum = 0;
   for (const o of outcomes) {
