@@ -1,3 +1,4 @@
+const logger = require('../utils/logger');
 const SpecialVisitorEvent = require('../models/SpecialVisitorEvent');
 const GameConfig = require('../models/GameConfig');
 const User = require('../models/User');

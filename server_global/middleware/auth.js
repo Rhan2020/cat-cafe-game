@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { logger } = require('./logging');
+const logger = require('../utils/logger');
 const expressRateLimit = require('express-rate-limit');
 
 // JWT tokenres.t('auto.e9aa8ce8')

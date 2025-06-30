@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+const logger = require('./utils/logger');
 require('dotenv').config();
 
 // res.t('auto.e5afbce5')
@@ -96,9 +97,9 @@ if (!fs.existsSync(logsDir)) {
 app.use(i18nMiddleware);
 
 app.listen(port, () => {
-  logger.info(`res.t('auto.e585a8e7') ${port} res.t('auto.e4b88ae8')`);
-  logger.info(`res.t('auto.e78eafe5'): ${process.env.NODE_ENV || 'development'}`);
-  logger.info(`res.t('auto.e581a5e5'): http://localhost:${port}/health`);
+  logger.info(`全球服务器正在端口 ${port} 上运行`);
+  logger.info(`环境: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`健康检查: http://localhost:${port}/health`);
 });
 
 module.exports = app;

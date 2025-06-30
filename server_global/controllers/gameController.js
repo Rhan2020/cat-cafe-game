@@ -1,3 +1,4 @@
+const logger = require('../utils/logger');
 const User = require('../models/User');
 const Animal = require('../models/Animal');
 const DeliveryEvent = require('../models/DeliveryEvent');
