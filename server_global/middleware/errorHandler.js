@@ -1,3 +1,5 @@
+const logger = require('../utils/logger');
+
 const errorHandler = (err, req, res, next) => {
   logger.error(`[ERROR] ${new Date().toISOString()} - ${err.stack}`);
   
@@ -5,7 +7,7 @@ const errorHandler = (err, req, res, next) => {
   if (err.name === 'ValidationError') {
     return res.status(400).json({ 
       code: 400,
-      message: 'res.t('auto.e8be93e5')',
+      message: 'Validation error',
       error: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
@@ -13,21 +15,21 @@ const errorHandler = (err, req, res, next) => {
   if (err.name === 'CastError') {
     return res.status(400).json({ 
       code: 400,
-      message: 'res.t('auto.e697a0e6')IDres.t('auto.e6a0bce5')' 
+      message: 'Invalid ID format'
     });
   }
   
   if (err.code === 11000) {
     return res.status(400).json({ 
       code: 400,
-      message: 'res.t('auto.e695b0e6')' 
+      message: 'Duplicate key error'
     });
   }
   
   // res.t('auto.e9bb98e8')
   res.status(500).json({ 
     code: 500,
-    message: 'res.t('auto.e69c8de5')',
+    message: 'Internal server error',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 };
