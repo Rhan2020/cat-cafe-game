@@ -4,7 +4,16 @@
   "description": "该目录存放游戏支线战场（全球）的服务端代码。",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "docker:build": "docker build -t catcafe/global-server .",
+    "docker:run": "docker run -p 8080:8080 catcafe/global-server"
   },
   "keywords": [],
   "author": "",
@@ -12,11 +21,21 @@
   "dependencies": {
     "dotenv": "^17.0.0",
     "express": "^5.1.0",
-    "mongoose": "^8.16.1"
+    "mongoose": "^8.16.1",
+    "express-validator": "^7.0.1",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "winston": "^3.11.0",
+    "redis": "^4.6.10"
   },
   "devDependencies": {
     "jest": "^30.0.3",
     "mongodb-memory-server": "^10.1.4",
-    "supertest": "^7.1.1"
+    "supertest": "^7.1.1",
+    "nodemon": "^3.0.2",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1",
+    "@eslint/js": "^8.56.0"
   }
 }
