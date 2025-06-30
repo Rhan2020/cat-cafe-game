@@ -11,7 +11,8 @@ const GameConfigSchema = new Schema({
     enum: [
       'animal_breeds', 'posts', 'items', 'skills', 
       'delivery_events', 'level_up_exp', 'wheel_rewards', 
-      'startup_scenarios', 'fish_types', 'global_settings'
+      'startup_scenarios', 'fish_types', 'global_settings',
+      'facility_upgrades'
     ]
   },
   

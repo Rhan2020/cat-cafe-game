@@ -5104,3 +5104,18 @@
 {"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 07:29:29"}
 {"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 11:12:52"}
 {"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 11:12:54"}
+{"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 11:19:19"}
+{"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 11:19:20"}
+{"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 11:34:28"}
+{"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 11:34:29"}
+{"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 11:49:35"}
+{"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 11:50:03"}
+{"level":"info","message":"Offline earnings calculated for user 686279eb334929c321ca101f: 900 gold (60 min, rate 15)","timestamp":"2025-06-30 11:50:03"}
+{"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 11:50:09"}
+{"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 11:50:11"}
+{"level":"info","message":"Offline earnings calculated for user 686279f301df7d586e825756: 900 gold (60 min, rate 15)","timestamp":"2025-06-30 11:50:11"}
+{"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 12:05:17"}
+{"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 12:20:59"}
+{"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 12:21:10"}
+{"level":"info","message":"Redis connected: redis://127.0.0.1:6379","timestamp":"2025-06-30 12:21:12"}
+{"level":"info","message":"Offline earnings calculated for user 686281386313ad0b3618a3db: 900 gold (60 min, rate 15)","timestamp":"2025-06-30 12:21:12"}

@@ -109,10 +109,12 @@ if (!fs.existsSync(logsDir)) {
 
 app.use(i18nMiddleware);
 
-app.listen(port, () => {
-  console.log(`全球服务器正在端口 ${port} 上运行`);
-  console.log(`环境: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`健康检查: http://localhost:${port}/health`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
+    console.log(`全球服务器正在端口 ${port} 上运行`);
+    console.log(`环境: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`健康检查: http://localhost:${port}/health`);
+  });
+}
 
 module.exports = app;
