@@ -1,6 +1,7 @@
 const { createClient } = require('redis');
 const logger = require('./logger');
 const config = require('./config');
+const promClient = require('prom-client');
 
 /********************  内存缓存作为降级  ************************/ 
 const memoryCache = new Map();
@@ -16,6 +17,24 @@ const getMem = (key) => {
 /***************************************************************/
 
 let redisClient;
+
+// Prometheus 指标
+const redisFailureCounter = new promClient.Counter({
+  name: 'redis_operation_failures_total',
+  help: 'Redis 操作失败次数',
+  labelNames: ['method']
+});
+const redisReconnectCounter = new promClient.Counter({
+  name: 'redis_reconnect_total',
+  help: 'Redis 重连尝试次数'
+});
+
+// Circuit Breaker 参数
+const MAX_FAILURES = parseInt(process.env.REDIS_MAX_FAILURES || 5);
+const BREAKER_TTL = parseInt(process.env.REDIS_BREAKER_TTL || 120); // seconds
+
+let consecutiveFailures = 0;
+let breakerOpenUntil = 0;
 
 function initRedis() {
   const redisUrl = config.redisUrl;
@@ -33,7 +52,10 @@ function initRedis() {
 
   redisClient.on('ready', () => logger.info('Redis 准备就绪'));
   redisClient.on('end', () => logger.warn('Redis 连接已关闭'));
-  redisClient.on('reconnecting', () => logger.warn('Redis 重新连接中...'));
+  redisClient.on('reconnecting', () => {
+    logger.warn('Redis 重新连接中...');
+    redisReconnectCounter.inc();
+  });
   redisClient.on('error', (err) => logger.error('Redis 错误: %s', err.message));
 
   redisClient.connect().catch((err) => {
@@ -58,22 +80,40 @@ setInterval(async () => {
 
 async function getCache(key) {
   // Redis 优先
-  if (redisClient?.isReady) {
+  if (redisClient?.isReady && Date.now() > breakerOpenUntil) {
     try {
       const val = await redisClient.get(key);
       if (val) return JSON.parse(val);
-    } catch (e) { logger.warn('Redis get %s err: %s', key, e.message); }
+    } catch (e) {
+      logger.warn('Redis get %s err: %s', key, e.message);
+      redisFailureCounter.inc({ method: 'get' });
+      handleFailure();
+    }
   }
   return getMem(key);
 }
 
 async function setCache(key, value, ttl = 60) {
-  if (redisClient?.isReady) {
+  if (redisClient?.isReady && Date.now() > breakerOpenUntil) {
     try {
       await redisClient.setEx(key, ttl, JSON.stringify(value));
-    } catch (e) { logger.warn('Redis set %s err: %s', key, e.message); }
+      consecutiveFailures = 0; // 成功写入重置
+    } catch (e) {
+      logger.warn('Redis set %s err: %s', key, e.message);
+      redisFailureCounter.inc({ method: 'set' });
+      handleFailure();
+    }
   }
   setMem(key, value, ttl);
+}
+
+function handleFailure() {
+  consecutiveFailures += 1;
+  if (consecutiveFailures >= MAX_FAILURES) {
+    breakerOpenUntil = Date.now() + BREAKER_TTL * 1000;
+    logger.error('Redis CircuitBreaker 打开，%d 秒内不再尝试', BREAKER_TTL);
+    consecutiveFailures = 0;
+  }
 }
 
 module.exports = { getCache, setCache };

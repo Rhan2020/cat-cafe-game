@@ -4,7 +4,15 @@ const path = require('path');
 const fs = require('fs').promises;
 const crypto = require('crypto');
 const sharp = require('sharp');
+const FileType = require('file-type');
 const { logger } = require('../middleware/logging');
+const promClient = require('prom-client');
+
+const uploadSizeHistogram = new promClient.Histogram({
+  name: 'asset_upload_size_bytes',
+  help: '单次资产上传文件大小',
+  buckets: [1024, 10*1024, 100*1024, 1024*1024, 5*1024*1024, 20*1024*1024, 50*1024*1024]
+});
 
 // 配置文件上传
 const storage = multer.diskStorage({
@@ -112,6 +120,13 @@ exports.uploadAsset = [
         return res.status(400).json({ message: '名称和分类为必填项' });
       }
 
+      // 二次 MIME 检测防伪造
+      const detected = await FileType.fromFile(filePath);
+      if (detected && detected.mime !== req.file.mimetype) {
+        await fs.unlink(filePath);
+        return res.status(400).json({ message:`文件内容与声明类型不匹配 (${detected.mime} ≠ ${req.file.mimetype})` });
+      }
+
       // 计算文件哈希
       const fileHash = await calculateFileHash(filePath);
       
@@ -158,6 +173,8 @@ exports.uploadAsset = [
       });
 
       await asset.save();
+
+      uploadSizeHistogram.observe(req.file.size);
 
       logger.info(`素材上传成功: ${asset._id}`, {
         userId: req.user?.id,
