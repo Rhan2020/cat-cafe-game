@@ -641,6 +641,27 @@ exports.completeFishing = async (req, res) => {
   }
 };
 
+// @desc    Get random cat social bubble
+// @route   GET /api/game/bubbles/random?context=barista
+// @access  Public
+exports.getRandomBubble = async (req, res) => {
+  try {
+    const { context } = req.query;
+    const bubblesConfig = await GameConfig.getActiveConfig('cat_bubbles');
+    if (!bubblesConfig) {
+      return res.status(204).json({ code: 204, message: 'No bubble config' });
+    }
+    const bubbles = bubblesConfig.data.filter(b => !context || b.context === context);
+    if (bubbles.length === 0) {
+      return res.status(204).json({ code: 204, message: 'No bubbles for context' });
+    }
+    const bubble = bubbles[Math.floor(Math.random() * bubbles.length)];
+    return res.status(200).json({ code: 200, message: 'Bubble fetched', data: bubble });
+  } catch (err) {
+    res.status(500).json({ code: 500, message: 'Internal Server Error', error: err.message });
+  }
+};
+
 // Helper functions
 function getRecruitConfiguration(boxType, currency) {
   const configs = {

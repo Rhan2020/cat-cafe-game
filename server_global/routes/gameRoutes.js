@@ -7,11 +7,13 @@ const {
   spinWheel,
   startDelivery,
   startFishing,
-  completeFishing
+  completeFishing,
+  getRandomBubble
 } = require('../controllers/gameController');
 
 // 公开路由
 router.get('/configs', getGameConfigs);
+router.get('/bubbles/random', getRandomBubble);
 
 // 需要认证的路由
 router.use(protect);

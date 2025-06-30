@@ -111,7 +111,78 @@ const GameConfig = require('../server_global/models/GameConfig');
       { upsert: true }
     );
 
+    // Special Visitors
+    const specialVisitors = [
+      {
+        visitorId: 'mute_mountain_cat',
+        name: '来自"无声山脉"的猫',
+        description: '一只毛发粗糙、眼神胆怯的猫咪，身上带着泥土。',
+        weight: 5,
+        expireIn: 24 * 60 * 60 * 1000,
+        choices: [
+          {
+            id: 'give_milk',
+            text: '赠送一杯热牛奶',
+            outcomes: [
+              { probability: 1.0, result: { itemReward: 'warm_milk', message: '猫咪露出感激的笑容。' } }
+            ]
+          },
+          {
+            id: 'pat',
+            text: '温柔地抚摸它',
+            outcomes: [
+              { probability: 1.0, result: { goldReward: 50, message: '猫咪感到安心，留下了金币。' } }
+            ]
+          },
+          {
+            id: 'ignore',
+            text: '假装没看见',
+            outcomes: [
+              { probability: 1.0, result: { message: '猫咪悄悄离开……' } }
+            ]
+          }
+        ]
+      }
+    ];
+
+    await GameConfig.findOneAndUpdate(
+      { configType: 'special_visitors' },
+      {
+        configType: 'special_visitors',
+        version: '1.0.0',
+        data: specialVisitors,
+        description: '特殊访客事件',
+        createdBy: adminId,
+        updatedBy: adminId,
+        isActive: true
+      },
+      { upsert: true }
+    );
+
+    // Cat Social Bubbles
+    const catBubbles = [
+      { context: 'barista', text: '只要我搭得够高，就能碰到天花板！' },
+      { context: 'delivery', text: '哼，看那只猫扭来扭去的~ 真做作' },
+      { context: 'fishing', text: '钓鱼真是一门哲学…' },
+      { context: 'idle', text: '主人，摸摸～' }
+    ];
+
+    await GameConfig.findOneAndUpdate(
+      { configType: 'cat_bubbles' },
+      {
+        configType: 'cat_bubbles',
+        version: '1.0.0',
+        data: catBubbles,
+        description: '猫咪社交圈气泡文案',
+        createdBy: adminId,
+        updatedBy: adminId,
+        isActive: true
+      },
+      { upsert: true }
+    );
+
     console.log('GameConfig seeding completed');
+    console.log('Special visitor & bubble configs seeded');
     await mongoose.disconnect();
     process.exit(0);
   } catch (err) {
