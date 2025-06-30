@@ -43,6 +43,19 @@ function initRedis() {
 
 initRedis();
 
+const RECHECK_INTERVAL = 60 * 1000; // 1分钟
+// 定时自检，如果 Redis 不可用则尝试重连
+setInterval(async () => {
+  if (!redisClient?.isReady) {
+    try {
+      await redisClient.connect();
+      logger.info('自检：Redis 已重新连接');
+    } catch (err) {
+      logger.warn('自检：Redis 仍不可用: %s', err.message);
+    }
+  }
+}, RECHECK_INTERVAL);
+
 async function getCache(key) {
   // Redis 优先
   if (redisClient?.isReady) {

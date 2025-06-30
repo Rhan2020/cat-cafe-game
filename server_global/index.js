@@ -10,6 +10,8 @@ const errorHandler = require('./middleware/errorHandler');
 const { httpLogger } = require('./middleware/logging');
 const { generalLimiter, helmetConfig, corsOptions } = require('./middleware/security');
 const { i18nMiddleware } = require('./utils/i18n');
+const promClient = require('prom-client');
+const { scheduleRankingReset } = require('./scripts/weeklyRankingReset');
 
 const app = express();
 const port = config.port;
@@ -128,6 +130,18 @@ const swaggerSpec = swaggerJsdoc({
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // *****************************************************************
+
+// 集成 Prometheus metrics
+promClient.collectDefaultMetrics();
+app.get('/metrics', async (req,res)=>{
+  res.set('Content-Type', promClient.register.contentType);
+  res.send(await promClient.register.metrics());
+});
+
+// 仅在非测试环境启动 cron
+if(config.env !== 'test'){
+  scheduleRankingReset();
+}
 
 if (config.env !== 'test') {
   app.listen(port, () => {

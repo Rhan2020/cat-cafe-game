@@ -10,6 +10,10 @@ const { protect } = require('../middleware/auth');
 // @access  Public
 router.post('/login', authLimiter, validateLogin, login);
 
+// 第三方 OAuth 登录
+const { oauthLogin } = require('../controllers/oauthController');
+router.post('/oauth', authLimiter, oauthLogin);
+
 // 需要认证
 router.use(protect);
 

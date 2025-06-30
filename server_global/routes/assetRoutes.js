@@ -7,7 +7,9 @@ const {
   updateAsset,
   deleteAsset,
   getAssetStats,
-  batchOperateAssets
+  batchOperateAssets,
+  uploadChunk,
+  mergeChunks
 } = require('../controllers/assetController');
 const { validateAssetUpload, validateAssetUpdate } = require('../middleware/validation');
 const { authenticateToken, requireEditor, requireAdmin } = require('../middleware/auth');
@@ -46,5 +48,9 @@ router.put('/:id', authenticateToken, requireEditor, updateAsset);
 // @desc    删除素材
 // @access  Private (需要管理员权限)
 router.delete('/:id', authenticateToken, requireAdmin, deleteAsset);
+
+// 分片上传（不鉴权，可根据需要添加）
+router.post('/upload/chunk', uploadChunk);
+router.post('/upload/merge', mergeChunks);
 
 module.exports = router;

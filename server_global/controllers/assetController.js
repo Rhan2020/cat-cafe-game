@@ -465,6 +465,56 @@ exports.batchOperateAssets = async (req, res) => {
   }
 };
 
+// ---------------- 文件分片上传 -----------------
+const chunkDirRoot = path.join(__dirname, '../uploads/chunks');
+
+// 保存切片
+exports.uploadChunk = [
+  multer({ storage, limits:{fileSize: 10*1024*1024}}).single('chunk'),
+  async (req,res)=>{
+    try{
+      const { fileHash, chunkIndex } = req.body;
+      if(!fileHash || chunkIndex===undefined) return res.status(400).json({ message:'fileHash 和 chunkIndex 必填'});
+      const dir = path.join(chunkDirRoot, fileHash);
+      await fs.mkdir(dir, { recursive:true });
+      const chunkPath = path.join(dir, `${chunkIndex}`);
+      await fs.rename(req.file.path, chunkPath);
+      res.json({ message:'chunk uploaded' });
+    }catch(err){
+      logger.error('上传分片失败: %s', err.message);
+      res.status(500).json({ message:'上传分片失败' });
+    }
+  }
+];
+
+// 合并切片
+exports.mergeChunks = async (req,res)=>{
+  try{
+    const { fileHash, totalChunks, fileName } = req.body;
+    if(!fileHash || !totalChunks || !fileName) return res.status(400).json({ message:'fileHash, totalChunks, fileName 必填'});
+    const dir = path.join(chunkDirRoot, fileHash);
+    const chunks = await fs.readdir(dir);
+    if(chunks.length !== parseInt(totalChunks)) return res.status(400).json({ message:'缺少部分分片'});
+    const ext = path.extname(fileName);
+    const finalPath = path.join(__dirname, '../uploads', `${fileHash}${ext}`);
+    const writeStream = require('fs').createWriteStream(finalPath);
+    for(let i=0;i<totalChunks;i++){
+      const chunkPath = path.join(dir, `${i}`);
+      const data = await fs.readFile(chunkPath);
+      writeStream.write(data);
+    }
+    writeStream.end();
+    writeStream.on('finish', async ()=>{
+      // 清理分片目录
+      await fs.rm(dir, { recursive:true, force:true });
+      res.json({ message:'文件合并完成', url:`/uploads/${path.basename(finalPath)}` });
+    });
+  }catch(err){
+    logger.error('合并分片失败: %s', err.message);
+    res.status(500).json({ message:'合并分片失败'});
+  }
+};
+
 module.exports = {
   uploadAsset: exports.uploadAsset,
   getAssets: exports.getAssets,
@@ -472,5 +522,7 @@ module.exports = {
   updateAsset: exports.updateAsset,
   deleteAsset: exports.deleteAsset,
   getAssetStats: exports.getAssetStats,
-  batchOperateAssets: exports.batchOperateAssets
+  batchOperateAssets: exports.batchOperateAssets,
+  uploadChunk: exports.uploadChunk,
+  mergeChunks: exports.mergeChunks
 };

@@ -39,8 +39,21 @@ async function calculateOfflineEarnings(user) {
     }
 
     // 查询工作中的动物
-    const workers = await Animal.find({ ownerId: user._id, status: 'working' }, 'attributes.cooking').lean();
-    const workerBonusRate = workers.reduce((sum, a) => sum + (a.attributes?.cooking || 0) * 0.5, 0);
+    const workers = await Animal.find({ ownerId: user._id, status: 'working' }, 'attributes.cooking breedId').lean();
+
+    // 稀有度加成
+    const breedConfigDoc = await require('./gameConfigCache').getConfig('animal_breeds');
+    const rarityMultiplierMap = { 'N': 1, 'R': 1.1, 'SR': 1.25, 'SSR': 1.5, 'UR': 2 };
+
+    const workerBonusRate = workers.reduce((sum, a) => {
+      const base = (a.attributes?.cooking || 0) * 0.5;
+      let multiplier = 1;
+      if (breedConfigDoc?.data) {
+        const breedInfo = breedConfigDoc.data.find(b => b.breedId === a.breedId);
+        if (breedInfo) multiplier = rarityMultiplierMap[breedInfo.rarity] || 1;
+      }
+      return sum + base * multiplier;
+    }, 0);
 
     const earningsPerMin = baseRate + workerBonusRate + facilityBonusRate;
     const total = earningsPerMin * minutes;
