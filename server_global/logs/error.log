@@ -1,2 +1,4 @@
 {"duration":"10ms","ip":"::ffff:127.0.0.1","level":"error","message":"HTTP Request Error","method":"POST","service":"cat-cafe-global","status":400,"timestamp":"2025-06-30T06:57:29.760Z","url":"/login","userId":"anonymous"}
 {"duration":"1ms","ip":"::ffff:127.0.0.1","level":"error","message":"HTTP Request Error","method":"POST","service":"cat-cafe-global","status":400,"timestamp":"2025-06-30T06:57:29.834Z","url":"/login","userId":"anonymous"}
+{"duration":"13ms","ip":"::ffff:127.0.0.1","level":"error","message":"HTTP Request Error","method":"POST","service":"cat-cafe-global","status":400,"timestamp":"2025-06-30T07:10:22.424Z","url":"/login","userId":"anonymous"}
+{"duration":"2ms","ip":"::ffff:127.0.0.1","level":"error","message":"HTTP Request Error","method":"POST","service":"cat-cafe-global","status":400,"timestamp":"2025-06-30T07:10:22.662Z","url":"/login","userId":"anonymous"}
