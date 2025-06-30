@@ -66,7 +66,7 @@ GameConfigSchema.statics.getActiveConfig = async function(configType) {
       { effectiveTo: { $gt: now } }
     ]
   });
-  if (doc) await setCache(cacheKey, doc, 300);
+  if (doc) await setCache(cacheKey, doc.toObject(), 300);
   return doc;
 };
 

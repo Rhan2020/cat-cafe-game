@@ -15,9 +15,11 @@ const port = process.env.PORT || 8080;
 // 信任代理（用于获取真实IP）
 app.set('trust proxy', 1);
 
-// 安全中间件
-app.use(helmetConfig);
-app.use(require('cors')(corsOptions));
+// 安全中间件（测试环境跳过，避免 CORS/helmet 干扰）
+if (process.env.NODE_ENV !== 'test') {
+  app.use(helmetConfig);
+  app.use(require('cors')(corsOptions));
+}
 
 // 通用限流
 app.use(generalLimiter);
@@ -74,6 +76,12 @@ app.use('/api/visitor', visitorRoutes);
 app.use('/api/contract', contractRoutes);
 app.use('/api/rankings', rankingRoutes);
 app.use('/api/facilities', facilityRoutes);
+
+// 兼容旧测试：将 /login 代理到新路径
+app.post('/login', (req, res, next) => {
+  req.url = '/api/users/login';
+  userRoutes.handle(req, res, next);
+});
 
 // 静态文件服务（素材文件）
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

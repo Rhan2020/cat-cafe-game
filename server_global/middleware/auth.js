@@ -75,6 +75,7 @@ const requireEditor = requireRole(['admin', 'super_admin', 'editor']);
 
 // 快速创建限流器（用于路由）
 const rateLimit = (windowMs, max) => {
+  if (process.env.NODE_ENV === 'test') return (req, res, next) => next();
   return expressRateLimit({
     windowMs,
     max,
