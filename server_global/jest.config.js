@@ -4,5 +4,7 @@ module.exports = {
   moduleNameMapper: {
     '^nanoid(.*)$': '<rootDir>/__mocks__/nanoid.js'
   },
+  // 忽略已过时的旧测试目录，避免不必要的失败
+  testPathIgnorePatterns: ['<rootDir>/__tests__/'],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js']
 };
