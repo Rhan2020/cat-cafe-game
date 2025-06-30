@@ -7,6 +7,7 @@ require('dotenv').config();
 const errorHandler = require('./middleware/errorHandler');
 const { httpLogger } = require('./middleware/logging');
 const { generalLimiter, helmetConfig, corsOptions } = require('./middleware/security');
+const { i18nMiddleware } = require('./utils/i18n');
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -91,6 +92,8 @@ const logsDir = path.join(__dirname, 'logs');
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
 }
+
+app.use(i18nMiddleware);
 
 app.listen(port, () => {
   console.log(`全球服务器正在端口 ${port} 上运行`);
