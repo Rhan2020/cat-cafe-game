@@ -9,19 +9,19 @@ const authenticateToken = (req, res, next) => {
 
   if (!token) {
     return res.status(401).json({ 
-      message: 'res.t('auto.e8aebfe9')：res.t('auto.e7bcbae5')' 
+      message: 'Access denied: missing authentication token' 
     });
   }
 
   jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret', (err, decoded) => {
     if (err) {
-      logger.warn('res.t('auto.e697a0e6')JWTres.t('auto.e4bba4e7')', { 
+      logger.warn('Invalid JWT token', { 
         error: err.message,
         ip: req.ip,
         userAgent: req.get('User-Agent')
       });
       return res.status(403).json({ 
-        message: 'res.t('auto.e8aebfe9')：res.t('auto.e697a0e6')' 
+        message: 'Access denied: invalid authentication token' 
       });
     }
 
@@ -41,7 +41,7 @@ const requireRole = (roles) => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ 
-        message: 'res.t('auto.e8aebfe9')：res.t('auto.e794a8e6')' 
+        message: 'Access denied: user unauthenticated' 
       });
     }
 
@@ -49,7 +49,7 @@ const requireRole = (roles) => {
     const allowedRoles = Array.isArray(roles) ? roles : [roles];
 
     if (!allowedRoles.includes(userRole)) {
-      logger.warn('res.t('auto.e794a8e6')', {
+      logger.warn('User permission insufficient', {
         userId: req.user.id,
         userRole: userRole,
         requiredRoles: allowedRoles,
@@ -57,7 +57,7 @@ const requireRole = (roles) => {
       });
       
       return res.status(403).json({ 
-        message: 'res.t('auto.e8aebfe9')：res.t('auto.e69d83e9')' 
+        message: 'Access denied: insufficient permissions' 
       });
     }
 
@@ -78,7 +78,7 @@ const rateLimit = (windowMs, max) => {
     max,
     message: {
       code: 429,
-      message: 'res.t('auto.e8afb7e6')，res.t('auto.e8afb7e7')'
+      message: 'Too many requests, please try again later'
     },
     standardHeaders: true,
     legacyHeaders: false
