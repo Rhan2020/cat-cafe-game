@@ -429,6 +429,218 @@ exports.startDelivery = async (req, res) => {
   }
 };
 
+// @desc    Start fishing
+// @route   POST /api/game/fishing/start
+// @access  Private
+exports.startFishing = async (req, res) => {
+  try {
+    const { animalIds = [], baitId = null, collaborators = [], fishingDuration } = req.body;
+
+    if (!Array.isArray(animalIds) || animalIds.length === 0) {
+      return res.status(400).json({ code: 400, message: 'animalIds must be a non-empty array' });
+    }
+
+    // 校验动物归属及状态
+    const animals = await Animal.find({ _id: { $in: animalIds }, ownerId: req.user.id });
+    if (animals.length !== animalIds.length) {
+      return res.status(400).json({ code: 400, message: 'Some animals not found or not owned by user' });
+    }
+    const tiredAnimal = animals.find(a => a.status !== 'idle' || a.fatigue > 80);
+    if (tiredAnimal) {
+      return res.status(400).json({ code: 400, message: 'Some animals are busy or too tired' });
+    }
+
+    // 获取用户信息
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ code: 404, message: 'User not found' });
+    }
+
+    // 校验鱼饵
+    let baitConfig = null;
+    if (baitId) {
+      const itemsConfig = await GameConfig.getActiveConfig('items');
+      if (!itemsConfig) {
+        return res.status(500).json({ code: 500, message: 'Items configuration not found' });
+      }
+      baitConfig = (itemsConfig.data || []).find(i => i.itemId === baitId && i.type === 'bait');
+      if (!baitConfig) {
+        return res.status(400).json({ code: 400, message: 'Invalid bait itemId' });
+      }
+      // 检查用户库存
+      if (!user.inventory[baitId] || user.inventory[baitId] < 1) {
+        return res.status(400).json({ code: 400, message: 'Not enough bait in inventory' });
+      }
+    }
+
+    // 校验协作者
+    const validCollaborators = [];
+    if (Array.isArray(collaborators) && collaborators.length > 0) {
+      const collaboratorUsers = await User.find({ _id: { $in: collaborators } });
+      collaboratorUsers.forEach(u => validCollaborators.push(String(u._id)));
+    }
+
+    const duration = fishingDuration || 30 * 60 * 1000; // 30分钟
+    const now = new Date();
+    const endTime = new Date(now.getTime() + duration);
+
+    // 计算幸运加成
+    const totalLuck = animals.reduce((sum, a) => sum + (a.attributes.luck || 0), 0);
+    const baseLuckBonus = 1 + totalLuck / 100;
+    const baitBonus = baitConfig?.effect?.luckMultiplier || 1;
+    const collaboratorBonus = validCollaborators.length > 0 ? 1.2 : 1;
+    const finalLuckBonus = parseFloat((baseLuckBonus * baitBonus * collaboratorBonus).toFixed(2));
+
+    // 事务：更新动物状态、扣除鱼饵、创建钓鱼会话
+    const session = new FishingSession({
+      ownerId: req.user.id,
+      animalIds,
+      collaborators: validCollaborators,
+      startTime: now,
+      endTime,
+      status: 'active',
+      baitUsed: baitId,
+      luckBonus: finalLuckBonus,
+      baseDuration: duration,
+      catches: []
+    });
+
+    const sessionId = session._id;
+
+    const sessionOps = session.save();
+    const animalOps = Animal.updateMany({ _id: { $in: animalIds } }, { $set: { status: 'fishing' } });
+
+    if (baitId) {
+      user.inventory[baitId] -= 1;
+      user.markModified('inventory');
+      await Promise.all([sessionOps, animalOps, user.save()]);
+    } else {
+      await Promise.all([sessionOps, animalOps]);
+    }
+
+    return res.status(200).json({
+      code: 200,
+      message: 'Fishing session started',
+      data: {
+        sessionId,
+        endTime,
+        luckBonus: finalLuckBonus,
+        collaborators: validCollaborators
+      }
+    });
+  } catch (error) {
+    console.error('Error starting fishing:', error);
+    res.status(500).json({ code: 500, message: 'Internal Server Error', error: error.message });
+  }
+};
+
+// @desc    Complete fishing
+// @route   POST /api/game/fishing/complete
+// @access  Private
+exports.completeFishing = async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    if (!sessionId) {
+      return res.status(400).json({ code: 400, message: 'sessionId is required' });
+    }
+
+    const session = await FishingSession.findById(sessionId);
+    if (!session || String(session.ownerId) !== String(req.user.id)) {
+      return res.status(404).json({ code: 404, message: 'Fishing session not found' });
+    }
+
+    if (session.status !== 'active') {
+      return res.status(400).json({ code: 400, message: 'Session already completed or cancelled' });
+    }
+
+    const now = new Date();
+    if (now < session.endTime) {
+      return res.status(400).json({ code: 400, message: 'Fishing session is not complete yet', data: { remainingTime: session.endTime - now } });
+    }
+
+    // 生成收获
+    const fishConfigDoc = await GameConfig.getActiveConfig('fish_types');
+    const fishConfig = fishConfigDoc?.data || [
+      { itemId: 'fish_common_1', name: '小鲫鱼', rarity: 'common', weight: 50 },
+      { itemId: 'fish_common_2', name: '小鲤鱼', rarity: 'common', weight: 40 },
+      { itemId: 'fish_uncommon_1', name: '草鱼', rarity: 'uncommon', weight: 30 },
+      { itemId: 'fish_uncommon_2', name: '鲈鱼', rarity: 'uncommon', weight: 25 },
+      { itemId: 'fish_rare_1', name: '金鱼', rarity: 'rare', weight: 10 },
+      { itemId: 'fish_rare_2', name: '锦鲤', rarity: 'rare', weight: 8 },
+      { itemId: 'fish_epic_1', name: '龙鱼', rarity: 'epic', weight: 3 },
+      { itemId: 'fish_legendary_1', name: '传说之鱼', rarity: 'legendary', weight: 1 }
+    ];
+
+    const catches = [];
+    const durationMinutes = Math.floor(session.baseDuration / 60000);
+    const baseAttempts = session.animalIds.length * Math.floor(durationMinutes / 10);
+    const totalAttempts = Math.floor(baseAttempts * session.luckBonus);
+
+    const totalWeight = fishConfig.reduce((s, f) => s + f.weight, 0);
+
+    function pickFish() {
+      let rnd = Math.random() * totalWeight;
+      for (const fish of fishConfig) {
+        rnd -= fish.weight;
+        if (rnd <= 0) return fish;
+      }
+      return fishConfig[0];
+    }
+
+    for (let i = 0; i < totalAttempts; i++) {
+      if (Math.random() > Math.min(0.95, 0.7 + (session.luckBonus - 1) * 0.3)) continue;
+      const fish = pickFish();
+      const existing = catches.find(c => c.itemId === fish.itemId);
+      if (existing) existing.count += 1;
+      else catches.push({ ...fish, count: 1 });
+    }
+
+    if (Math.random() < 0.1 * session.luckBonus) {
+      const bottle = { itemId: 'drift_bottle', name: '神秘漂流瓶', rarity: 'rare', count: 1 };
+      catches.push(bottle);
+    }
+
+    // 更新数据库：session、动物状态、奖励入仓库
+    session.status = 'completed';
+    session.catches = catches;
+    session.completedAt = now;
+    await session.save();
+
+    await Animal.updateMany({ _id: { $in: session.animalIds } }, {
+      $set: { status: 'idle' },
+      $inc: { fatigue: -20, mood: 15 }
+    });
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ code: 404, message: 'User not found' });
+    }
+
+    // 更新用户库存
+    const inventoryUpdates = {};
+    catches.forEach(c => {
+      inventoryUpdates[`inventory.${c.itemId}`] = (inventoryUpdates[`inventory.${c.itemId}`] || 0) + c.count;
+    });
+    for (const [key, val] of Object.entries(inventoryUpdates)) {
+      const current = user.get(key) || 0;
+      user.set(key, current + val);
+    }
+
+    user.fishing = user.fishing || {};
+    user.fishing.totalCatches = (user.fishing.totalCatches || 0) + catches.length;
+    user.fishing.totalSessions = (user.fishing.totalSessions || 0) + 1;
+    user.fishing.lastFishingTime = now;
+    user.markModified('inventory');
+    user.markModified('fishing');
+    await user.save();
+
+    return res.status(200).json({ code: 200, message: 'Fishing session completed', data: { sessionId, catches } });
+  } catch (error) {
+    console.error('Error completing fishing:', error);
+    res.status(500).json({ code: 500, message: 'Internal Server Error', error: error.message });
+  }
+};
+
 // Helper functions
 function getRecruitConfiguration(boxType, currency) {
   const configs = {

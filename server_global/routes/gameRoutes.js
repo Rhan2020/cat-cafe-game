@@ -5,7 +5,9 @@ const {
   getGameConfigs,
   recruitAnimal,
   spinWheel,
-  startDelivery
+  startDelivery,
+  startFishing,
+  completeFishing
 } = require('../controllers/gameController');
 
 // 公开路由
@@ -22,5 +24,9 @@ router.post('/wheel/spin', rateLimit(60 * 1000, 10), spinWheel);
 
 // 外卖系统
 router.post('/delivery/start', startDelivery);
+
+// 后院钓鱼系统
+router.post('/fishing/start', rateLimit(60 * 1000, 10), startFishing);
+router.post('/fishing/complete', completeFishing);
 
 module.exports = router;

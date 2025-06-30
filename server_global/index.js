@@ -60,9 +60,11 @@ app.get('/health', (req, res) => {
 // API路由
 const userRoutes = require('./routes/userRoutes');
 const assetRoutes = require('./routes/assetRoutes');
+const gameRoutes = require('./routes/gameRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/assets', assetRoutes);
+app.use('/api/game', gameRoutes);
 
 // 静态文件服务（素材文件）
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
