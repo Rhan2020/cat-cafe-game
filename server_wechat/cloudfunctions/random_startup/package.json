@@ -1,0 +1,9 @@
+{
+  "name": "random_startup",
+  "version": "1.0.0",
+  "description": "Random startup scenario selection for new users",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

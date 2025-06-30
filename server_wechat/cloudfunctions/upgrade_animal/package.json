@@ -1,0 +1,9 @@
+{
+  "name": "upgrade_animal",
+  "version": "1.0.0",
+  "description": "Animal upgrade and experience management",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

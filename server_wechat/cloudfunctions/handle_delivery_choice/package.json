@@ -1,0 +1,9 @@
+{
+  "name": "handle_delivery_choice",
+  "version": "1.0.0",
+  "description": "Handle user choices in delivery events",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

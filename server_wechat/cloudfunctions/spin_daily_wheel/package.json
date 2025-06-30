@@ -1,0 +1,9 @@
+{
+  "name": "spin_daily_wheel",
+  "version": "1.0.0",
+  "description": "Daily wheel spinning system",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
