@@ -1,5 +1,6 @@
 import { _decorator, Component, director } from 'cc';
 import { NetworkManager } from '../Network/NetworkManager';
+import { SimpleResourceManager } from '../Utils/SimpleResourceManager';
 
 const { ccclass, property } = _decorator;
 
@@ -17,6 +18,7 @@ export class GameManager extends Component {
 
     public currentUser: UserData | null = null;
     public gameConfigs: any = null; // Will hold all game configurations
+    public resourceManager: SimpleResourceManager;
 
     onLoad() {
         if (GameManager.Instance) {
@@ -30,6 +32,10 @@ export class GameManager extends Component {
     async start() {
         try {
             console.log("[GameManager] Starting game flow...");
+
+            // 0. Initialize Resource Manager
+            this.resourceManager = SimpleResourceManager.getInstance();
+            console.log("[GameManager] Resource manager initialized");
 
             // 1. User Login
             const loginResponse = await NetworkManager.Instance.callCloudFunction('user_login');

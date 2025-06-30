@@ -1,0 +1,42 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- 外圈阴影 -->
+  <circle cx="128" cy="132" r="115" fill="#B8860B" opacity="0.3"/>
+  
+  <!-- 金币主体 -->
+  <circle cx="128" cy="128" r="115" fill="url(#goldGradient)" stroke="#CD853F" stroke-width="4"/>
+  
+  <!-- 内圈装饰 -->
+  <circle cx="128" cy="128" r="95" fill="none" stroke="#FFF8DC" stroke-width="2" stroke-dasharray="8,4"/>
+  
+  <!-- 中心图案 - 猫爪印 -->
+  <g transform="translate(128,128)">
+    <!-- 主要爪垫 -->
+    <ellipse cx="0" cy="15" rx="25" ry="30" fill="#FFD700"/>
+    
+    <!-- 四个脚趾垫 -->
+    <ellipse cx="-20" cy="-10" rx="12" ry="18" fill="#FFD700"/>
+    <ellipse cx="-8" cy="-20" rx="12" ry="18" fill="#FFD700"/>
+    <ellipse cx="8" cy="-20" rx="12" ry="18" fill="#FFD700"/>
+    <ellipse cx="20" cy="-10" rx="12" ry="18" fill="#FFD700"/>
+  </g>
+  
+  <!-- 文字装饰 -->
+  <text x="128" y="210" text-anchor="middle" font-family="serif" font-size="24" font-weight="bold" fill="#8B4513">金币</text>
+  
+  <!-- 光泽效果 -->
+  <ellipse cx="100" cy="100" rx="40" ry="20" fill="url(#shineGradient)" opacity="0.6"/>
+  
+  <!-- 定义渐变 -->
+  <defs>
+    <radialGradient id="goldGradient" cx="0.3" cy="0.3">
+      <stop offset="0%" stop-color="#FFEF94"/>
+      <stop offset="50%" stop-color="#FFD700"/>
+      <stop offset="100%" stop-color="#B8860B"/>
+    </radialGradient>
+    
+    <linearGradient id="shineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+</svg>

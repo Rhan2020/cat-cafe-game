@@ -1,0 +1,96 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- 猫咪身体阴影 -->
+  <ellipse cx="130" cy="200" rx="45" ry="25" fill="#D2691E" opacity="0.3"/>
+  
+  <!-- 猫咪身体 -->
+  <ellipse cx="128" cy="190" rx="40" ry="22" fill="url(#orangeBodyGradient)" stroke="#CD853F" stroke-width="2"/>
+  
+  <!-- 猫咪头部 -->
+  <circle cx="128" cy="140" r="50" fill="url(#orangeHeadGradient)" stroke="#CD853F" stroke-width="2"/>
+  
+  <!-- 猫耳朵 -->
+  <polygon points="95,110 110,80 125,110" fill="url(#orangeEarGradient)" stroke="#CD853F" stroke-width="1"/>
+  <polygon points="131,110 146,80 161,110" fill="url(#orangeEarGradient)" stroke="#CD853F" stroke-width="1"/>
+  
+  <!-- 耳朵内侧 -->
+  <polygon points="100,105 108,90 120,105" fill="#FFB6C1"/>
+  <polygon points="136,105 148,90 156,105" fill="#FFB6C1"/>
+  
+  <!-- 猫咪脸部条纹 -->
+  <path d="M 100 125 Q 110 120, 120 125" stroke="#CD853F" stroke-width="3" fill="none"/>
+  <path d="M 136 125 Q 146 120, 156 125" stroke="#CD853F" stroke-width="3" fill="none"/>
+  <path d="M 105 140 Q 115 135, 125 140" stroke="#CD853F" stroke-width="2" fill="none"/>
+  <path d="M 131 140 Q 141 135, 151 140" stroke="#CD853F" stroke-width="2" fill="none"/>
+  
+  <!-- 眼睛 -->
+  <ellipse cx="115" cy="135" rx="8" ry="12" fill="#90EE90"/>
+  <ellipse cx="141" cy="135" rx="8" ry="12" fill="#90EE90"/>
+  
+  <!-- 眼珠 -->
+  <ellipse cx="115" cy="138" rx="3" ry="8" fill="#000000"/>
+  <ellipse cx="141" cy="138" rx="3" ry="8" fill="#000000"/>
+  
+  <!-- 高光 -->
+  <circle cx="117" cy="135" r="2" fill="#FFFFFF"/>
+  <circle cx="143" cy="135" r="2" fill="#FFFFFF"/>
+  
+  <!-- 鼻子 -->
+  <polygon points="128,148 125,155 131,155" fill="#FFB6C1"/>
+  
+  <!-- 嘴巴 -->
+  <path d="M 128 155 Q 122 165, 115 160" stroke="#8B4513" stroke-width="2" fill="none"/>
+  <path d="M 128 155 Q 134 165, 141 160" stroke="#8B4513" stroke-width="2" fill="none"/>
+  
+  <!-- 胡须 -->
+  <line x1="80" y1="145" x2="105" y2="148" stroke="#8B4513" stroke-width="1"/>
+  <line x1="80" y1="155" x2="105" y2="155" stroke="#8B4513" stroke-width="1"/>
+  <line x1="151" y1="148" x2="176" y2="145" stroke="#8B4513" stroke-width="1"/>
+  <line x1="151" y1="155" x2="176" y2="155" stroke="#8B4513" stroke-width="1"/>
+  
+  <!-- 尾巴 -->
+  <path d="M 165 190 Q 200 170, 210 200 Q 200 210, 180 200" fill="url(#orangeTailGradient)" stroke="#CD853F" stroke-width="2"/>
+  
+  <!-- 尾巴条纹 -->
+  <path d="M 180 185 Q 190 180, 195 190" stroke="#CD853F" stroke-width="2" fill="none"/>
+  <path d="M 190 195 Q 200 190, 205 200" stroke="#CD853F" stroke-width="2" fill="none"/>
+  
+  <!-- 猫爪 -->
+  <ellipse cx="105" cy="210" rx="8" ry="6" fill="url(#orangePawGradient)"/>
+  <ellipse cx="151" cy="210" rx="8" ry="6" fill="url(#orangePawGradient)"/>
+  
+  <!-- 爱心装饰 -->
+  <g transform="translate(60,60) scale(0.6)">
+    <path d="M 20 15 C 20 10, 15 5, 10 5 C 5 5, 0 10, 0 15 C 0 10, -5 5, -10 5 C -15 5, -20 10, -20 15 C -20 25, 0 35, 0 35 C 0 35, 20 25, 20 15 Z" fill="#FF69B4" opacity="0.7"/>
+  </g>
+  
+  <!-- 定义渐变 -->
+  <defs>
+    <radialGradient id="orangeHeadGradient" cx="0.3" cy="0.3">
+      <stop offset="0%" stop-color="#FFE4B5"/>
+      <stop offset="50%" stop-color="#FFA500"/>
+      <stop offset="100%" stop-color="#FF8C00"/>
+    </radialGradient>
+    
+    <radialGradient id="orangeBodyGradient" cx="0.3" cy="0.3">
+      <stop offset="0%" stop-color="#FFE4B5"/>
+      <stop offset="50%" stop-color="#FFA500"/>
+      <stop offset="100%" stop-color="#FF8C00"/>
+    </radialGradient>
+    
+    <linearGradient id="orangeEarGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFE4B5"/>
+      <stop offset="100%" stop-color="#FFA500"/>
+    </linearGradient>
+    
+    <linearGradient id="orangeTailGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFA500"/>
+      <stop offset="50%" stop-color="#FF8C00"/>
+      <stop offset="100%" stop-color="#FFE4B5"/>
+    </linearGradient>
+    
+    <radialGradient id="orangePawGradient" cx="0.5" cy="0.3">
+      <stop offset="0%" stop-color="#FFB6C1"/>
+      <stop offset="100%" stop-color="#FF8C00"/>
+    </radialGradient>
+  </defs>
+</svg>

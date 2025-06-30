@@ -1,0 +1,51 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- 阴影 -->
+  <polygon points="128,45 195,110 128,215 61,110" fill="#4169E1" opacity="0.3" transform="translate(4,4)"/>
+  
+  <!-- 钻石主体 -->
+  <polygon points="128,40 200,105 128,210 56,105" fill="url(#diamondGradient)" stroke="#191970" stroke-width="3"/>
+  
+  <!-- 钻石顶面 -->
+  <polygon points="128,40 170,75 128,85 86,75" fill="url(#topGradient)"/>
+  
+  <!-- 钻石左侧面 -->
+  <polygon points="56,105 86,75 128,85 128,210" fill="url(#leftGradient)"/>
+  
+  <!-- 钻石右侧面 -->
+  <polygon points="200,105 170,75 128,85 128,210" fill="url(#rightGradient)"/>
+  
+  <!-- 高光效果 -->
+  <polygon points="128,40 145,55 128,65 111,55" fill="#E6E6FA" opacity="0.9"/>
+  
+  <!-- 内部反射线 -->
+  <line x1="128" y1="85" x2="128" y2="180" stroke="#E6E6FA" stroke-width="2" opacity="0.5"/>
+  <line x1="90" y1="95" x2="166" y2="95" stroke="#E6E6FA" stroke-width="1" opacity="0.3"/>
+  
+  <!-- 文字装饰 -->
+  <text x="128" y="240" text-anchor="middle" font-family="serif" font-size="20" font-weight="bold" fill="#191970">钻石</text>
+  
+  <!-- 定义渐变 -->
+  <defs>
+    <linearGradient id="diamondGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E6E6FA"/>
+      <stop offset="30%" stop-color="#9370DB"/>
+      <stop offset="70%" stop-color="#4169E1"/>
+      <stop offset="100%" stop-color="#191970"/>
+    </linearGradient>
+    
+    <linearGradient id="topGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F0F8FF"/>
+      <stop offset="100%" stop-color="#9370DB"/>
+    </linearGradient>
+    
+    <linearGradient id="leftGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#191970"/>
+      <stop offset="100%" stop-color="#4169E1"/>
+    </linearGradient>
+    
+    <linearGradient id="rightGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4169E1"/>
+      <stop offset="100%" stop-color="#191970"/>
+    </linearGradient>
+  </defs>
+</svg>
