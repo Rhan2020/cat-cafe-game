@@ -1,19 +1,5 @@
 {
-  "name": "cat-cafe-game",
-  "version": "1.0.0",
-  "description": "Cat Cafe Game with Delivery Adventures",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "generate-images": "node scripts/generate_placeholder_images.js"
-  },
-  "keywords": [
-    "game",
-    "cat",
-    "cafe",
-    "delivery"
-  ],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {}
+  "devDependencies": {
+    "glob": "^10.4.5"
+  }
 }

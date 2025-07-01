@@ -1,8 +1,9 @@
+const logger = require('../utils/logger');
 const SpecialVisitorEvent = require('../models/SpecialVisitorEvent');
 const GameConfig = require('../models/GameConfig');
 const User = require('../models/User');
 
-// 获取待处理的特殊访客（若有多条取最早）
+// res.t('auto.e88eb7e5')（res.t('auto.e88ba5e6')）
 exports.getPendingVisitor = async (req, res) => {
   try {
     const event = await SpecialVisitorEvent.findOne({ ownerId: req.user.id, status: 'pending' })
@@ -16,7 +17,7 @@ exports.getPendingVisitor = async (req, res) => {
   }
 };
 
-// 玩家对访客做出选择
+// res.t('auto.e78ea9e5')
 exports.chooseVisitorOption = async (req, res) => {
   try {
     const { eventId, choiceId } = req.body;
@@ -37,11 +38,11 @@ exports.chooseVisitorOption = async (req, res) => {
       return res.status(400).json({ code: 400, message: 'Invalid choiceId' });
     }
 
-    // 计算结果
+    // res.t('auto.e8aea1e7')
     const result = selectOutcome(choice.outcomes);
     const user = await User.findById(req.user.id);
 
-    // 应用奖励 / 惩罚
+    // res.t('auto.e5ba94e7') / res.t('auto.e683a9e7')
     if (result.itemReward) {
       user.inventory[result.itemReward] = (user.inventory[result.itemReward] || 0) + 1;
       user.markModified('inventory');
@@ -64,7 +65,7 @@ exports.chooseVisitorOption = async (req, res) => {
   }
 };
 
-// 后台或定时任务触发访客事件（示例函数，可在 cron 调用）
+// res.t('auto.e5908ee5')（res.t('auto.e7a4bae4')，res.t('auto.e58fafe5') cron res.t('auto.e8b083e7')）
 exports.triggerRandomVisitor = async (userId) => {
   const visitorConfigDoc = await GameConfig.getActiveConfig('special_visitors');
   if (!visitorConfigDoc) return null;
@@ -72,11 +73,11 @@ exports.triggerRandomVisitor = async (userId) => {
   if (!visitors || visitors.length === 0) return null;
 
   const userEventsCount = await SpecialVisitorEvent.countDocuments({ ownerId: userId, status: 'pending' });
-  if (userEventsCount > 0) return null; // 已有待处理访客
+  if (userEventsCount > 0) return null; // res.t('auto.e5b7b2e6')
 
   const selected = selectVisitor(visitors);
   const now = new Date();
-  const expiredAt = new Date(now.getTime() + (selected.expireIn || 86400000)); // 默认一天
+  const expiredAt = new Date(now.getTime() + (selected.expireIn || 86400000)); // res.t('auto.e9bb98e8')
 
   const event = await SpecialVisitorEvent.create({
     ownerId: userId,
@@ -92,7 +93,7 @@ exports.triggerRandomVisitor = async (userId) => {
 };
 
 function selectOutcome(outcomes) {
-  if (!outcomes || outcomes.length === 0) return { message: '平安无事' };
+  if (!outcomes || outcomes.length === 0) return { message: res.t ? res.t('auto.e5b9b3e5', '平安无事') : '平安无事' };
   const rand = Math.random();
   let cum = 0;
   for (const o of outcomes) {

@@ -129,7 +129,7 @@ exports.login = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Error in user login:', error);
+    logger.error('Error in user login:', error);
     res.status(500).json({ 
       code: 500,
       message: 'Internal Server Error',
@@ -162,7 +162,7 @@ exports.getProfile = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    logger.error('Error fetching user profile:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',
@@ -203,7 +203,7 @@ exports.updateSettings = async (req, res) => {
       data: { settings: user.settings }
     });
   } catch (error) {
-    console.error('Error updating user settings:', error);
+    logger.error('Error updating user settings:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',
@@ -250,7 +250,7 @@ exports.updateNickname = async (req, res) => {
       data: { nickname: user.nickname }
     });
   } catch (error) {
-    console.error('Error updating nickname:', error);
+    logger.error('Error updating nickname:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',
@@ -291,7 +291,7 @@ exports.getTransactions = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching transactions:', error);
+    logger.error('Error fetching transactions:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',
@@ -315,7 +315,7 @@ exports.deleteAccount = async (req, res) => {
 
     // Soft delete - deactivate account
     user.isActive = false;
-    user.nickname = `[已删除]${user.nickname}`;
+    user.nickname = `[res.t('auto.e5b7b2e5')]${user.nickname}`;
     await user.save();
 
     // Optional: Clean up related data
@@ -329,7 +329,7 @@ exports.deleteAccount = async (req, res) => {
       message: 'Account deactivated successfully'
     });
   } catch (error) {
-    console.error('Error deleting account:', error);
+    logger.error('Error deleting account:', error);
     res.status(500).json({
       code: 500,
       message: 'Internal Server Error',

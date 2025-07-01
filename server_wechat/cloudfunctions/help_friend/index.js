@@ -130,7 +130,7 @@ exports.main = async (event, context) => {
       }
     });
 
-    console.log(`Friend help completed: ${openid} helped ${action.fromUserId} with ${action.actionType}`);
+    logger.info(`Friend help completed: ${openid} helped ${action.fromUserId} with ${action.actionType}`);
 
     return {
       code: 200,
@@ -144,7 +144,7 @@ exports.main = async (event, context) => {
     };
 
   } catch (err) {
-    console.error(`Error in help_friend for user ${openid}:`, err);
+    logger.error(`Error in help_friend for user ${openid}:`, err);
     return { code: 500, message: 'Internal Server Error', error: err.message };
   }
 };

@@ -124,7 +124,7 @@ exports.main = async (event, context) => {
       deliveryId = deliveryResult._id;
     });
 
-    console.log(`Delivery started for animal ${animalId}, event triggered: ${willTriggerEvent}`);
+    logger.info(`Delivery started for animal ${animalId}, event triggered: ${willTriggerEvent}`);
 
     return {
       code: 200,
@@ -140,7 +140,7 @@ exports.main = async (event, context) => {
     };
 
   } catch (err) {
-    console.error(`Error in start_delivery for user ${openid}:`, err);
+    logger.error(`Error in start_delivery for user ${openid}:`, err);
     return { code: 500, message: 'Internal Server Error', error: err.message };
   }
 };

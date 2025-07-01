@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const AssetSchema = new Schema({
-  // 基本信息
+  // res.t('auto.e59fbae6')
   name: { type: String, required: true, trim: true, maxlength: 100 },
   description: { type: String, default: '', maxlength: 500 },
   category: { 
@@ -12,45 +12,45 @@ const AssetSchema = new Schema({
   },
   tags: [{ type: String, maxlength: 50 }],
   
-  // 文件信息
+  // res.t('auto.e69687e4')
   fileName: { type: String, required: true },
   fileSize: { type: Number, required: true, min: 0 },
   mimeType: { type: String, required: true },
   fileExtension: { type: String, required: true },
   fileHash: { type: String, required: true, unique: true }, // SHA-256 hash for deduplication
   
-  // 存储信息
-  originalUrl: { type: String, required: true }, // 原始文件URL
+  // res.t('auto.e5ad98e5')
+  originalUrl: { type: String, required: true }, // res.t('auto.e58e9fe5')URL
   cdnUrl: { type: String }, // CDN URL
-  thumbnailUrl: { type: String }, // 缩略图URL
-  compressedUrl: { type: String }, // 压缩版本URL
+  thumbnailUrl: { type: String }, // res.t('auto.e7bca9e7')URL
+  compressedUrl: { type: String }, // res.t('auto.e58e8be7')URL
   
-  // 版本控制
+  // res.t('auto.e78988e6')
   version: { type: String, default: '1.0.0' },
-  parentAssetId: { type: Schema.Types.ObjectId, ref: 'Asset' }, // 父版本引用
+  parentAssetId: { type: Schema.Types.ObjectId, ref: 'Asset' }, // res.t('auto.e788b6e7')
   isLatestVersion: { type: Boolean, default: true },
   
-  // 元数据（根据素材类型不同）
+  // res.t('auto.e58583e6')（res.t('auto.e6a0b9e6')）
   metadata: {
-    // 图片素材
+    // res.t('auto.e59bbee7')
     width: { type: Number },
     height: { type: Number },
     format: { type: String },
     colorDepth: { type: Number },
     
-    // 音频素材
+    // res.t('auto.e99fb3e9')
     duration: { type: Number }, // 秒
     bitrate: { type: Number },
     sampleRate: { type: Number },
     channels: { type: Number },
     
-    // 动画素材
+    // res.t('auto.e58aa8e7')
     frameCount: { type: Number },
     fps: { type: Number },
     loopable: { type: Boolean, default: false }
   },
   
-  // 状态和权限
+  // res.t('auto.e78ab6e6')
   status: { 
     type: String, 
     enum: ['pending', 'processing', 'active', 'deprecated', 'deleted'],
@@ -62,38 +62,38 @@ const AssetSchema = new Schema({
     default: 'internal'
   },
   
-  // 使用统计
+  // res.t('auto.e4bdbfe7')
   usageCount: { type: Number, default: 0 },
   downloadCount: { type: Number, default: 0 },
   lastUsedAt: { type: Date },
   
-  // 配置关联
+  // res.t('auto.e9858de7')
   gameConfigReferences: [{
     configType: { type: String }, // 如 'animal_breeds', 'items'
     configId: { type: String },
-    fieldPath: { type: String } // 在配置中的字段路径，如 'icon', 'avatar'
+    fieldPath: { type: String } // res.t('auto.e59ca8e9')，如 'icon', 'avatar'
   }],
   
-  // 审核信息
+  // res.t('auto.e5aea1e6')
   approvedBy: { type: String },
   approvedAt: { type: Date },
   reviewNotes: { type: String },
   
-  // 创建和更新信息
+  // res.t('auto.e5889be5')
   createdBy: { type: String, required: true },
   updatedBy: { type: String },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
 
-// 索引
+// res.t('auto.e7b4a2e5')
 AssetSchema.index({ category: 1, status: 1 });
 AssetSchema.index({ tags: 1 });
 AssetSchema.index({ fileHash: 1 }, { unique: true });
 AssetSchema.index({ createdAt: -1 });
 AssetSchema.index({ 'gameConfigReferences.configType': 1 });
 
-// 虚拟字段：获取完整的CDN URL
+// res.t('auto.e8999ae6')：res.t('auto.e88eb7e5')CDN URL
 AssetSchema.virtual('fullCdnUrl').get(function() {
   if (this.cdnUrl) {
     return process.env.CDN_BASE_URL ? `${process.env.CDN_BASE_URL}${this.cdnUrl}` : this.cdnUrl;
@@ -101,18 +101,18 @@ AssetSchema.virtual('fullCdnUrl').get(function() {
   return this.originalUrl;
 });
 
-// 预处理：更新 updatedAt
+// res.t('auto.e9a284e5')：res.t('auto.e69bb4e6') updatedAt
 AssetSchema.pre('save', function(next) {
   this.updatedAt = new Date();
   next();
 });
 
-// 静态方法：根据文件hash查找重复
+// res.t('auto.e99d99e6')：res.t('auto.e6a0b9e6')hashres.t('auto.e69fa5e6')
 AssetSchema.statics.findByHash = function(hash) {
   return this.findOne({ fileHash: hash });
 };
 
-// 静态方法：获取某个配置相关的所有素材
+// res.t('auto.e99d99e6')：res.t('auto.e88eb7e5')
 AssetSchema.statics.findByConfigReference = function(configType, configId) {
   return this.find({
     'gameConfigReferences.configType': configType,
@@ -121,20 +121,20 @@ AssetSchema.statics.findByConfigReference = function(configType, configId) {
   });
 };
 
-// 实例方法：标记为已使用
+// res.t('auto.e5ae9ee4')：res.t('auto.e6a087e8')
 AssetSchema.methods.markAsUsed = function() {
   this.usageCount += 1;
   this.lastUsedAt = new Date();
   return this.save();
 };
 
-// 实例方法：创建新版本
+// res.t('auto.e5ae9ee4')：res.t('auto.e5889be5')
 AssetSchema.methods.createNewVersion = async function(newVersionData) {
-  // 将当前版本标记为非最新
+  // res.t('auto.e5b086e5')
   this.isLatestVersion = false;
   await this.save();
   
-  // 创建新版本
+  // res.t('auto.e5889be5')
   const Asset = this.constructor;
   const newVersion = new Asset({
     ...newVersionData,
@@ -146,7 +146,7 @@ AssetSchema.methods.createNewVersion = async function(newVersionData) {
   return newVersion.save();
 };
 
-// 实例方法：版本号递增
+// res.t('auto.e5ae9ee4')：res.t('auto.e78988e6')
 AssetSchema.methods.incrementVersion = function() {
   const [major, minor, patch] = this.version.split('.').map(Number);
   return `${major}.${minor}.${patch + 1}`;

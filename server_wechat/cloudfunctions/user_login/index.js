@@ -31,7 +31,7 @@ exports.main = async (event, context) => {
   // 输入验证
   const validation = validateInput(event);
   if (!validation.valid) {
-    console.error('输入验证失败:', validation.error);
+    logger.error('输入验证失败:', validation.error);
     return { 
       code: 400, 
       message: validation.error 
@@ -43,7 +43,7 @@ exports.main = async (event, context) => {
   
   // 检查openid是否存在
   if (!openid) {
-    console.error('未获取到用户openid');
+    logger.error('未获取到用户openid');
     return { 
       code: 401, 
       message: '用户身份验证失败' 
@@ -83,7 +83,7 @@ exports.main = async (event, context) => {
       
       try {
         await db.collection('users').add({ data: newUser });
-        console.log(`新用户创建成功: ${openid}`);
+        logger.info(`新用户创建成功: ${openid}`);
         return {
           code: 201,
           message: '用户创建成功',
@@ -93,7 +93,7 @@ exports.main = async (event, context) => {
           }
         };
       } catch (addError) {
-        console.error(`创建新用户失败: ${openid}`, addError);
+        logger.error(`创建新用户失败: ${openid}`, addError);
         return { 
           code: 500, 
           message: '用户创建失败' 
@@ -150,7 +150,7 @@ exports.main = async (event, context) => {
         }
     });
     
-    console.log(`User ${openid} logged in. Earned ${earnedGold} gold.`);
+    logger.info(`User ${openid} logged in. Earned ${earnedGold} gold.`);
     
     return {
       code: 200,
@@ -162,7 +162,7 @@ exports.main = async (event, context) => {
     };
 
   } catch (err) {
-    console.error(`用户登录过程中发生错误 ${openid}:`, {
+    logger.error(`用户登录过程中发生错误 ${openid}:`, {
       message: err.message,
       stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });

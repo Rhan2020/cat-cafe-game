@@ -115,7 +115,7 @@ exports.main = async (event, context) => {
       }
     });
 
-    console.log(`Animal ${animalId} upgraded from level ${animal.level} to ${upgadeResult.newLevel}`);
+    logger.info(`Animal ${animalId} upgraded from level ${animal.level} to ${upgadeResult.newLevel}`);
 
     return {
       code: 200,
@@ -132,7 +132,7 @@ exports.main = async (event, context) => {
     };
 
   } catch (err) {
-    console.error(`Error in upgrade_animal for user ${openid}:`, err);
+    logger.error(`Error in upgrade_animal for user ${openid}:`, err);
     return { code: 500, message: 'Internal Server Error', error: err.message };
   }
 };

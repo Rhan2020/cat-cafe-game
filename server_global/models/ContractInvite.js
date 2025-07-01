@@ -2,14 +2,14 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 /**
- * 好友契约邀请 - 玩家生成分享链接后等待好友接受
+ * res.t('auto.e5a5bde5') - res.t('auto.e78ea9e5')
  */
 const ContractInviteSchema = new Schema({
   inviteCode: { type: String, required: true, unique: true },
   inviterId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   contractType: { type: String, required: true }, // 如 loyal_dog, sweet_hamster
 
-  // 邀请状态
+  // res.t('auto.e98280e8')
   status: {
     type: String,
     required: true,

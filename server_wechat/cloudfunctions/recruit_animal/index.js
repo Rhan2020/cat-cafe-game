@@ -173,7 +173,7 @@ exports.main = async (event, context) => {
       }
     });
 
-    console.log(`User ${openid} recruited ${actualCount} animals using ${boxType} with ${currency}`);
+    logger.info(`User ${openid} recruited ${actualCount} animals using ${boxType} with ${currency}`);
 
     // 计算稀有度统计
     const rarityStats = {};
@@ -195,7 +195,7 @@ exports.main = async (event, context) => {
     };
 
   } catch (err) {
-    console.error(`Error in recruit_animal for user ${openid}:`, err);
+    logger.error(`Error in recruit_animal for user ${openid}:`, err);
     return { code: 500, message: 'Internal Server Error', error: err.message };
   }
 };

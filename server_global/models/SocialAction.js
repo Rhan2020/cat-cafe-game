@@ -2,28 +2,28 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const SocialActionSchema = new Schema({
-  // 用户信息
-  fromUserId: { type: String, required: true }, // 发起用户ID
-  toUserId: { type: String, required: true },   // 目标用户ID
+  // res.t('auto.e794a8e6')
+  fromUserId: { type: String, required: true }, // res.t('auto.e58f91e8')ID
+  toUserId: { type: String, required: true },   // res.t('auto.e79baee6')ID
   
-  // 行为类型
+  // res.t('auto.e8a18ce4')
   actionType: { 
     type: String, 
     required: true,
     enum: ['help_delivery', 'hire_animal', 'gift_item', 'fishing_invitation', 'friend_contract']
   },
   
-  // 关联对象
-  relatedId: { type: String, required: true }, // 关联的对象ID
+  // res.t('auto.e585b3e8')
+  relatedId: { type: String, required: true }, // res.t('auto.e585b3e8')ID
   
-  // 状态
+  // res.t('auto.e78ab6e6')
   status: { 
     type: String, 
     required: true,
     enum: ['pending', 'completed', 'expired', 'rejected']
   },
   
-  // 奖励信息
+  // res.t('auto.e5a596e5')
   reward: {
     gold: { type: Number, default: 0 },
     gems: { type: Number, default: 0 },
@@ -34,26 +34,26 @@ const SocialActionSchema = new Schema({
     experience: { type: Number, default: 0 }
   },
   
-  // 时间信息
+  // res.t('auto.e697b6e9')
   createdAt: { type: Date, default: Date.now },
   expiredAt: { type: Date },
   completedAt: { type: Date },
   
-  // 结果
+  // res.t('auto.e7bb93e6')
   result: { type: Object },
   
-  // 额外数据
+  // res.t('auto.e9a29de5')
   metadata: { type: Object, default: {} }
 });
 
-// 添加索引
+// res.t('auto.e6b7bbe5')
 SocialActionSchema.index({ fromUserId: 1 });
 SocialActionSchema.index({ toUserId: 1 });
 SocialActionSchema.index({ toUserId: 1, status: 1 });
 SocialActionSchema.index({ createdAt: -1 });
 SocialActionSchema.index({ expiredAt: 1 });
 
-// 虚拟字段：是否过期
+// res.t('auto.e8999ae6')：res.t('auto.e698afe5')
 SocialActionSchema.virtual('isExpired').get(function() {
   return this.status === 'pending' && 
          this.expiredAt && 

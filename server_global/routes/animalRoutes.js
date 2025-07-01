@@ -11,7 +11,7 @@ const {
   restAnimal
 } = require('../controllers/animalController');
 
-// 所有动物路由都需要认证
+// res.t('auto.e68980e6')
 router.use(protect);
 
 router.get('/', getAnimals);

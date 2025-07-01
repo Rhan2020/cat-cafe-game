@@ -1,9 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+const logger = require('./utils/logger');
 require('dotenv').config();
 
-// 导入中间件
+// res.t('auto.e5afbce5')
 const errorHandler = require('./middleware/errorHandler');
 const { httpLogger } = require('./middleware/logging');
 const { generalLimiter, helmetConfig, corsOptions } = require('./middleware/security');
@@ -12,34 +13,34 @@ const { i18nMiddleware } = require('./utils/i18n');
 const app = express();
 const port = process.env.PORT || 8080;
 
-// 信任代理（用于获取真实IP）
+// res.t('auto.e4bfa1e4')（res.t('auto.e794a8e4')IP）
 app.set('trust proxy', 1);
 
-// 安全中间件
+// res.t('auto.e5ae89e5')
 app.use(helmetConfig);
 app.use(require('cors')(corsOptions));
 
-// 通用限流
+// res.t('auto.e9809ae7')
 app.use(generalLimiter);
 
-// 日志中间件
+// res.t('auto.e697a5e5')
 app.use(httpLogger);
 
-// 基础中间件
+// res.t('auto.e59fbae7')
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Database Connection
 const dbURI = process.env.MONGODB_URI;
 if (!dbURI) {
-  console.error('Error: MONGODB_URI is not defined in the .env file.');
+  logger.error('Error: MONGODB_URI is not defined in the .env file.');
   process.exit(1);
 }
 
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected successfully.'))
+  .then(() => logger.info('MongoDB connected successfully.'))
   .catch(err => {
-    console.error('MongoDB connection error:', err);
+    logger.error('MongoDB connection error:', err);
     process.exit(1);
   });
 
@@ -48,7 +49,7 @@ app.get('/', (req, res) => {
   res.send('Global Server is running!');
 });
 
-// 健康检查端点
+// res.t('auto.e581a5e5')
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -58,7 +59,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API路由
+// APIres.t('auto.e8b7afe7')
 const userRoutes = require('./routes/userRoutes');
 const assetRoutes = require('./routes/assetRoutes');
 const gameRoutes = require('./routes/gameRoutes');
@@ -71,22 +72,22 @@ app.use('/api/game', gameRoutes);
 app.use('/api/visitor', visitorRoutes);
 app.use('/api/contract', contractRoutes);
 
-// 静态文件服务（素材文件）
+// res.t('auto.e99d99e6')（res.t('auto.e7b4a0e6')）
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 404处理
+// 404res.t('auto.e5a484e7')
 app.use('*', (req, res) => {
   res.status(404).json({
     code: 404,
-    message: '接口不存在',
+    message: 'Resource not found',
     path: req.originalUrl
   });
 });
 
-// 错误处理中间件（必须放在最后）
+// res.t('auto.e99499e8')（res.t('auto.e5bf85e9')）
 app.use(errorHandler);
 
-// 创建logs目录
+// res.t('auto.e5889be5')logsres.t('auto.e79baee5')
 const fs = require('fs');
 const logsDir = path.join(__dirname, 'logs');
 if (!fs.existsSync(logsDir)) {
@@ -96,9 +97,9 @@ if (!fs.existsSync(logsDir)) {
 app.use(i18nMiddleware);
 
 app.listen(port, () => {
-  console.log(`全球服务器正在端口 ${port} 上运行`);
-  console.log(`环境: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`健康检查: http://localhost:${port}/health`);
+  logger.info(`全球服务器正在端口 ${port} 上运行`);
+  logger.info(`环境: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`健康检查: http://localhost:${port}/health`);
 });
 
 module.exports = app;

@@ -146,7 +146,7 @@ exports.main = async (event, context) => {
       }
     });
 
-    console.log(`User ${openid} spun wheel (${spinType}) and got ${selectedReward.name}`);
+    logger.info(`User ${openid} spun wheel (${spinType}) and got ${selectedReward.name}`);
 
     return {
       code: 200,
@@ -169,7 +169,7 @@ exports.main = async (event, context) => {
     };
 
   } catch (err) {
-    console.error(`Error in spin_daily_wheel for user ${openid}:`, err);
+    logger.error(`Error in spin_daily_wheel for user ${openid}:`, err);
     return { code: 500, message: 'Internal Server Error', error: err.message };
   }
 };

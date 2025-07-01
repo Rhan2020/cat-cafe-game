@@ -2,27 +2,27 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const UserTransactionSchema = new Schema({
-  // 用户信息
+  // res.t('auto.e794a8e6')
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   
-  // 交易类型
+  // res.t('auto.e4baa4e6')
   type: { 
     type: String, 
     required: true,
     enum: ['earn', 'spend', 'purchase', 'refund', 'gift']
   },
   
-  // 货币类型
+  // res.t('auto.e8b4a7e5')
   currency: { 
     type: String, 
     required: true,
     enum: ['gold', 'gems', 'items']
   },
   
-  // 数量
+  // res.t('auto.e695b0e9')
   amount: { type: Number, required: true },
   
-  // 交易原因
+  // res.t('auto.e4baa4e6')
   reason: { 
     type: String, 
     required: true,
@@ -34,32 +34,32 @@ const UserTransactionSchema = new Schema({
     ]
   },
   
-  // 关联对象
-  relatedId: { type: String }, // 关联的对象ID
+  // res.t('auto.e585b3e8')
+  relatedId: { type: String }, // res.t('auto.e585b3e8')ID
   
-  // 交易前后余额
+  // res.t('auto.e4baa4e6')
   balanceBefore: { type: Number },
   balanceAfter: { type: Number },
   
-  // 详细信息
+  // res.t('auto.e8afa6e7')
   details: { type: Object, default: {} },
   
-  // 时间戳
+  // res.t('auto.e697b6e9')
   timestamp: { type: Date, default: Date.now },
   
-  // 交易状态
+  // res.t('auto.e4baa4e6')
   status: { 
     type: String, 
     default: 'completed',
     enum: ['pending', 'completed', 'failed', 'cancelled']
   },
   
-  // 管理员相关
-  adminId: { type: String }, // 如果是管理员操作
-  notes: { type: String }    // 备注
+  // res.t('auto.e7aea1e7')
+  adminId: { type: String }, // res.t('auto.e5a682e6')
+  notes: { type: String }    // res.t('auto.e5a487e6')
 });
 
-// 添加索引
+// res.t('auto.e6b7bbe5')
 UserTransactionSchema.index({ userId: 1 });
 UserTransactionSchema.index({ userId: 1, timestamp: -1 });
 UserTransactionSchema.index({ userId: 1, currency: 1 });

@@ -61,7 +61,7 @@ exports.main = async (event, context) => {
           exp: animal.exp
         }
       });
-      console.log(`Animal ${animalId} leveled up from ${originalLevel} to ${animal.level}.`);
+      logger.info(`Animal ${animalId} leveled up from ${originalLevel} to ${animal.level}.`);
     }
 
     return {
@@ -75,7 +75,7 @@ exports.main = async (event, context) => {
     };
 
   } catch (err) {
-    console.error(`Error in check_animal_level_up for user ${openid}:`, err);
+    logger.error(`Error in check_animal_level_up for user ${openid}:`, err);
     return { code: 500, message: 'Internal Server Error' };
   }
 }; 

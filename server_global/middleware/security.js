@@ -2,7 +2,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const cors = require('cors');
 
-// API限流配置
+// APIres.t('auto.e99990e6')
 const createRateLimiter = (windowMs, max, message) => {
   return rateLimit({
     windowMs,
@@ -17,44 +17,44 @@ const createRateLimiter = (windowMs, max, message) => {
   });
 };
 
-// 通用API限流
+// res.t('auto.e9809ae7')APIres.t('auto.e99990e6')
 const generalLimiter = createRateLimiter(
-  15 * 60 * 1000, // 15分钟
-  100, // 每个IP最多100个请求
-  '请求过于频繁，请稍后再试'
+  15 * 60 * 1000, // 15res.t('auto.e58886e9')
+  100, // res.t('auto.e6af8fe4')IPres.t('auto.e69c80e5')100res.t('auto.e4b8aae8')
+  'res.t('auto.e8afb7e6')，res.t('auto.e8afb7e7')'
 );
 
-// 登录API严格限流
+// res.t('auto.e799bbe5')APIres.t('auto.e4b8a5e6')
 const authLimiter = createRateLimiter(
-  15 * 60 * 1000, // 15分钟
-  5, // 每个IP最多5次登录尝试
-  '登录尝试过于频繁，请15分钟后再试'
+  15 * 60 * 1000, // 15res.t('auto.e58886e9')
+  5, // res.t('auto.e6af8fe4')IPres.t('auto.e69c80e5')5res.t('auto.e6aca1e7')
+  'res.t('auto.e799bbe5')，请15res.t('auto.e58886e9')'
 );
 
-// CORS配置
+// CORSres.t('auto.e9858de7')
 const corsOptions = {
   origin: function (origin, callback) {
-    // 允许的域名列表
+    // res.t('auto.e58581e8')
     const allowedOrigins = [
       'http://localhost:3000',
       'https://admin.catcafe.com',
       'https://game.catcafe.com'
     ];
     
-    // 允许没有origin的请求（比如移动应用）
+    // res.t('auto.e58581e8')originres.t('auto.e79a84e8')（res.t('auto.e6af94e5')）
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      callback(new Error('不允许的CORS请求源'));
+      callback(new Error('res.t('auto.e4b88de5')CORSres.t('auto.e8afb7e6')'));
     }
   },
   credentials: true,
   optionsSuccessStatus: 200
 };
 
-// 安全头配置
+// res.t('auto.e5ae89e5')
 const helmetConfig = helmet({
   contentSecurityPolicy: {
     directives: {

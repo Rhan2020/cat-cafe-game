@@ -70,7 +70,7 @@ exports.main = async (event, context) => {
         const TOLERANCE = Math.max(EARNINGS.MIN_GOLD_TOLERANCE, expectedGold * EARNINGS.GOLD_TOLERANCE_PERCENT);
         
         if (clientGold && goldDifference > TOLERANCE) {
-            console.warn(`Gold mismatch for user ${openid}: client=${clientGold}, expected=${expectedGold}, using server value`);
+            logger.warn(`Gold mismatch for user ${openid}: client=${clientGold}, expected=${expectedGold}, using server value`);
         }
         
         // 4. 使用服务端计算的值更新数据库
@@ -96,7 +96,7 @@ exports.main = async (event, context) => {
         };
 
     } catch (err) {
-        console.error('Error updating user data:', err);
+        logger.error('Error updating user data:', err);
         return {
             code: 500,
             message: 'Internal server error.'

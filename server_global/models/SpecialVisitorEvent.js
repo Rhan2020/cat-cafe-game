@@ -2,30 +2,30 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 /**
- * SpecialVisitorEvent - 寓言化社会访客随机事件
- * 参考 GDD 第 4.8 节
+ * SpecialVisitorEvent - res.t('auto.e5af93e8')
+ * res.t('auto.e58f82e8') GDD 第 4.8 节
  */
 const SpecialVisitorEventSchema = new Schema({
   ownerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 
-  // 配置中的 visitorId
+  // res.t('auto.e9858de7') visitorId
   visitorId: { type: String, required: true },
   name: { type: String, required: true },
   description: { type: String, required: true },
 
-  // 访客状态
+  // res.t('auto.e8aebfe5')
   status: {
     type: String,
     required: true,
     enum: ['pending', 'completed', 'expired']
   },
 
-  // 触发时间 & 过期时间
+  // res.t('auto.e8a7a6e5') & res.t('auto.e8bf87e6')
   triggeredAt: { type: Date, required: true },
   expiredAt: { type: Date, required: true },
   completedAt: { type: Date },
 
-  // 选择信息
+  // res.t('auto.e98089e6')
   choices: [{
     id: String,
     text: String,
@@ -34,7 +34,7 @@ const SpecialVisitorEventSchema = new Schema({
   selectedChoice: String,
   result: Object,
 
-  // 记录奖励/纪念品等
+  // res.t('auto.e8aeb0e5')/res.t('auto.e7baaae5')
   rewards: Object,
 
   createdAt: { type: Date, default: Date.now }

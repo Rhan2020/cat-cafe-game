@@ -19,7 +19,7 @@ exports.main = async (event, context) => {
       data: result.data
     };
   } catch (err) {
-    console.error('Error in get_game_configs function:', err);
+    logger.error('Error in get_game_configs function:', err);
     return {
       code: 500,
       message: 'Internal server error',
