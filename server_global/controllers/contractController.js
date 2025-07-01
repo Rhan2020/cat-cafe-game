@@ -1,3 +1,4 @@
+// 使用 CommonJS 版本，避免在 Jest 环境中解析 ESM
 const { customAlphabet } = require('nanoid');
 const ContractInvite = require('../models/ContractInvite');
 const GameConfig = require('../models/GameConfig');

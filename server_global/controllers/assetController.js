@@ -4,7 +4,15 @@ const path = require('path');
 const fs = require('fs').promises;
 const crypto = require('crypto');
 const sharp = require('sharp');
+const FileType = require('file-type');
 const { logger } = require('../middleware/logging');
+const promClient = require('prom-client');
+
+const uploadSizeHistogram = new promClient.Histogram({
+  name: 'asset_upload_size_bytes',
+  help: '单次资产上传文件大小',
+  buckets: [1024, 10*1024, 100*1024, 1024*1024, 5*1024*1024, 20*1024*1024, 50*1024*1024]
+});
 
 // res.t('auto.e9858de7')
 const storage = multer.diskStorage({
@@ -112,7 +120,14 @@ exports.uploadAsset = [
         return res.status(400).json({ message: 'res.t('auto.e5908de7')' });
       }
 
-      // res.t('auto.e8aea1e7')
+      // 二次 MIME 检测防伪造
+      const detected = await FileType.fromFile(filePath);
+      if (detected && detected.mime !== req.file.mimetype) {
+        await fs.unlink(filePath);
+        return res.status(400).json({ message:`文件内容与声明类型不匹配 (${detected.mime} ≠ ${req.file.mimetype})` });
+      }
+
+      // 计算文件哈希
       const fileHash = await calculateFileHash(filePath);
       
       // res.t('auto.e6a380e6')
@@ -159,7 +174,9 @@ exports.uploadAsset = [
 
       await asset.save();
 
-      logger.info(`res.t('auto.e7b4a0e6'): ${asset._id}`, {
+      uploadSizeHistogram.observe(req.file.size);
+
+      logger.info(`素材上传成功: ${asset._id}`, {
         userId: req.user?.id,
         fileName: req.file.originalname,
         fileSize: req.file.size
@@ -465,6 +482,56 @@ exports.batchOperateAssets = async (req, res) => {
   }
 };
 
+// ---------------- 文件分片上传 -----------------
+const chunkDirRoot = path.join(__dirname, '../uploads/chunks');
+
+// 保存切片
+exports.uploadChunk = [
+  multer({ storage, limits:{fileSize: 10*1024*1024}}).single('chunk'),
+  async (req,res)=>{
+    try{
+      const { fileHash, chunkIndex } = req.body;
+      if(!fileHash || chunkIndex===undefined) return res.status(400).json({ message:'fileHash 和 chunkIndex 必填'});
+      const dir = path.join(chunkDirRoot, fileHash);
+      await fs.mkdir(dir, { recursive:true });
+      const chunkPath = path.join(dir, `${chunkIndex}`);
+      await fs.rename(req.file.path, chunkPath);
+      res.json({ message:'chunk uploaded' });
+    }catch(err){
+      logger.error('上传分片失败: %s', err.message);
+      res.status(500).json({ message:'上传分片失败' });
+    }
+  }
+];
+
+// 合并切片
+exports.mergeChunks = async (req,res)=>{
+  try{
+    const { fileHash, totalChunks, fileName } = req.body;
+    if(!fileHash || !totalChunks || !fileName) return res.status(400).json({ message:'fileHash, totalChunks, fileName 必填'});
+    const dir = path.join(chunkDirRoot, fileHash);
+    const chunks = await fs.readdir(dir);
+    if(chunks.length !== parseInt(totalChunks)) return res.status(400).json({ message:'缺少部分分片'});
+    const ext = path.extname(fileName);
+    const finalPath = path.join(__dirname, '../uploads', `${fileHash}${ext}`);
+    const writeStream = require('fs').createWriteStream(finalPath);
+    for(let i=0;i<totalChunks;i++){
+      const chunkPath = path.join(dir, `${i}`);
+      const data = await fs.readFile(chunkPath);
+      writeStream.write(data);
+    }
+    writeStream.end();
+    writeStream.on('finish', async ()=>{
+      // 清理分片目录
+      await fs.rm(dir, { recursive:true, force:true });
+      res.json({ message:'文件合并完成', url:`/uploads/${path.basename(finalPath)}` });
+    });
+  }catch(err){
+    logger.error('合并分片失败: %s', err.message);
+    res.status(500).json({ message:'合并分片失败'});
+  }
+};
+
 module.exports = {
   uploadAsset: exports.uploadAsset,
   getAssets: exports.getAssets,
@@ -472,5 +539,7 @@ module.exports = {
   updateAsset: exports.updateAsset,
   deleteAsset: exports.deleteAsset,
   getAssetStats: exports.getAssetStats,
-  batchOperateAssets: exports.batchOperateAssets
+  batchOperateAssets: exports.batchOperateAssets,
+  uploadChunk: exports.uploadChunk,
+  mergeChunks: exports.mergeChunks
 };

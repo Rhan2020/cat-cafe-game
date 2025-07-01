@@ -1,0 +1,1 @@
+module.exports = { fromFile: async ()=>({ mime:'image/jpeg', ext:'jpg' }) };

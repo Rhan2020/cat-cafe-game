@@ -32,7 +32,9 @@ const authenticateToken = (req, res, next) => {
       role: decoded.role || 'user'
     };
 
-    next();
+    // 离线收益跟踪
+    const offlineTracker = require('./offlineTracker');
+    offlineTracker(req, res, next);
   });
 };
 
@@ -85,12 +87,16 @@ const rateLimit = (windowMs, max) => {
   });
 };
 
+function generateToken(userId, role = 'user') {
+  return jwt.sign({ userId, role }, process.env.JWT_SECRET || 'fallback-secret', { expiresIn: '7d' });
+}
+
 module.exports = {
-  // res.t('auto.e585bce5')
   protect: authenticateToken,
   authenticateToken,
   requireRole,
   requireAdmin,
   requireEditor,
-  rateLimit
+  rateLimit,
+  generateToken
 };

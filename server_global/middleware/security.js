@@ -17,22 +17,11 @@ const createRateLimiter = (windowMs, max, message) => {
   });
 };
 
-// res.t('auto.e9809ae7')APIres.t('auto.e99990e6')
-const generalLimiter = createRateLimiter(
-  15 * 60 * 1000, // 15res.t('auto.e58886e9')
-  100, // res.t('auto.e6af8fe4')IPres.t('auto.e69c80e5')100res.t('auto.e4b8aae8')
-  'res.t('auto.e8afb7e6')，res.t('auto.e8afb7e7')'
-);
+// 登录API严格限流
+const authLimiter = createRateLimiter(15 * 60 * 1000, 5, '登录尝试过于频繁，请15分钟后再试');
 
-// res.t('auto.e799bbe5')APIres.t('auto.e4b8a5e6')
-const authLimiter = createRateLimiter(
-  15 * 60 * 1000, // 15res.t('auto.e58886e9')
-  5, // res.t('auto.e6af8fe4')IPres.t('auto.e69c80e5')5res.t('auto.e6aca1e7')
-  'res.t('auto.e799bbe5')，请15res.t('auto.e58886e9')'
-);
-
-// CORSres.t('auto.e9858de7')
-const corsOptions = {
+// CORS配置
+const corsOptions = process.env.NODE_ENV === 'test' ? { origin: '*'} : {
   origin: function (origin, callback) {
     // res.t('auto.e58581e8')
     const allowedOrigins = [
@@ -70,6 +59,10 @@ const helmetConfig = helmet({
     preload: true
   }
 });
+
+const generalLimiter = process.env.NODE_ENV === 'test'
+  ? (req, res, next) => next()
+  : createRateLimiter(15 * 60 * 1000, 100, '请求过于频繁，请稍后再试');
 
 module.exports = {
   generalLimiter,

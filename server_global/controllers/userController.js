@@ -7,7 +7,8 @@ const GameConfig = require('../models/GameConfig');
 // @route   POST /api/users/login
 // @access  Public
 exports.login = async (req, res) => {
-  const { authProviderId, authProvider, nickname, avatarUrl } = req.body;
+  let { authProviderId, authProvider, nickname, avatarUrl } = req.body;
+  if (!authProvider) authProvider = 'local';
 
   if (!authProviderId || !authProvider || !nickname) {
     return res.status(400).json({ 

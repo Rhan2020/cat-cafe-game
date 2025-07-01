@@ -1,0 +1,1 @@
+module.exports = { serve:(req,res,next)=>next(), setup:()=> (req,res)=>res.end() };

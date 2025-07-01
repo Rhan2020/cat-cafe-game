@@ -10,7 +10,10 @@ const {
   completeFishing,
   getRandomBubble
 } = require('../controllers/gameController');
-const verifyHmac = require('../middleware/hmacVerify');
+const {
+  previewOfflineEarnings,
+  claimOfflineEarnings
+} = require('../controllers/offlineController');
 
 // res.t('auto.e585ace5')
 router.get('/configs', getGameConfigs);
@@ -31,5 +34,9 @@ router.post('/delivery/start', verifyHmac, startDelivery);
 // res.t('auto.e5908ee9')
 router.post('/fishing/start', verifyHmac, rateLimit(60 * 1000, 10), startFishing);
 router.post('/fishing/complete', verifyHmac, completeFishing);
+
+// 离线收益
+router.get('/offline/preview', previewOfflineEarnings);
+router.post('/offline/claim', claimOfflineEarnings);
 
 module.exports = router;

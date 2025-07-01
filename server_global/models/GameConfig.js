@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const { getCache, setCache } = require('../utils/cache');
 
 const GameConfigSchema = new Schema({
   // res.t('auto.e9858de7')
@@ -10,7 +11,8 @@ const GameConfigSchema = new Schema({
     enum: [
       'animal_breeds', 'posts', 'items', 'skills', 
       'delivery_events', 'level_up_exp', 'wheel_rewards', 
-      'startup_scenarios', 'fish_types', 'global_settings'
+      'startup_scenarios', 'fish_types', 'global_settings',
+      'facility_upgrades'
     ]
   },
   
@@ -48,10 +50,14 @@ GameConfigSchema.index({ configType: 1 });
 GameConfigSchema.index({ isActive: 1 });
 GameConfigSchema.index({ effectiveFrom: 1, effectiveTo: 1 });
 
-// res.t('auto.e99d99e6')：res.t('auto.e88eb7e5')
-GameConfigSchema.statics.getActiveConfig = function(configType) {
+// 静态方法：获取有效配置
+GameConfigSchema.statics.getActiveConfig = async function(configType) {
+  const cacheKey = `gameConfig:${configType}`;
+  const cached = await getCache(cacheKey);
+  if (cached) return typeof cached === 'string' ? JSON.parse(cached) : cached;
+
   const now = new Date();
-  return this.findOne({
+  const doc = await this.findOne({
     configType,
     isActive: true,
     effectiveFrom: { $lte: now },
@@ -61,6 +67,8 @@ GameConfigSchema.statics.getActiveConfig = function(configType) {
       { effectiveTo: { $gt: now } }
     ]
   });
+  if (doc) await setCache(cacheKey, doc.toObject(), 300);
+  return doc;
 };
 
 const GameConfig = mongoose.model('GameConfig', GameConfigSchema);
