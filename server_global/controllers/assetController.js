@@ -514,17 +514,28 @@ exports.mergeChunks = async (req,res)=>{
     if(chunks.length !== parseInt(totalChunks)) return res.status(400).json({ message:'缺少部分分片'});
     const ext = path.extname(fileName);
     const finalPath = path.join(__dirname, '../uploads', `${fileHash}${ext}`);
-    const writeStream = require('fs').createWriteStream(finalPath);
-    for(let i=0;i<totalChunks;i++){
+    const { createReadStream, createWriteStream } = require('fs');
+    const { pipeline } = require('stream/promises');
+    const writeStream = createWriteStream(finalPath);
+
+    for (let i = 0; i < totalChunks; i++) {
       const chunkPath = path.join(dir, `${i}`);
-      const data = await fs.readFile(chunkPath);
-      writeStream.write(data);
+      await pipeline(createReadStream(chunkPath), writeStream, { end: false });
     }
+    // 手动关闭写流
     writeStream.end();
-    writeStream.on('finish', async ()=>{
-      // 清理分片目录
-      await fs.rm(dir, { recursive:true, force:true });
-      res.json({ message:'文件合并完成', url:`/uploads/${path.basename(finalPath)}` });
+
+    writeStream.on('close', async () => {
+      try {
+        await fs.rm(dir, { recursive: true, force: true });
+      } catch (e) {
+        logger.warn('删除分片目录失败: %s', e.message);
+      }
+      res.json({ message: '文件合并完成', url: `/uploads/${path.basename(finalPath)}` });
+    });
+    writeStream.on('error', async (err) => {
+      logger.error('合并写入失败: %s', err.message);
+      res.status(500).json({ message: '合并失败', error: err.message });
     });
   }catch(err){
     logger.error('合并分片失败: %s', err.message);
